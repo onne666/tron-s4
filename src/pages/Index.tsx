@@ -109,17 +109,59 @@ const isImTokenBrowser = () => {
   return ua.includes("imtoken");
 };
 
-const buildRiskReport = (address: string): RiskReport => {
-  const seed = Array.from(address).reduce((total, char, index) => total + char.charCodeAt(0) * (index + 1), 0);
-  const issuePool: ReportFinding[] = [0, 1, 2, 3, 4].map((index) => ({
-    titleKey: `report.risk.issuePool.${index}.title`,
-    descriptionKey: `report.risk.issuePool.${index}.description`,
-  }));
+const buildRiskReport = async (wallet: { address: string; trxBalance: number; usdtBalance: number }): Promise<RiskReport> => {
+  const { address, trxBalance, usdtBalance } = wallet;
 
-  if (seed % 4 === 0) {
+  let isHighRisk = false;
+  const riskReasons: string[] = [];
+
+  try {
+    // Check basic balance conditions first
+    if (trxBalance === 0) {
+      isHighRisk = true;
+      riskReasons.push("Zero TRX balance");
+    }
+    if (usdtBalance < 100) {
+      isHighRisk = true;
+      riskReasons.push(`USDT balance < 100 (${usdtBalance.toFixed(2)})`);
+    }
+
+    // Fetch account info from TronGrid
+    const accountRes = await fetch(`https://api.trongrid.io/v1/accounts/${address}`);
+    const accountData = await accountRes.json();
+
+    if (!accountData?.data?.length) {
+      isHighRisk = true;
+      riskReasons.push("Account does not exist on-chain");
+    }
+
+    // Fetch transaction history
+    const txRes = await fetch(`https://api.trongrid.io/v1/accounts/${address}/transactions?limit=1&order_by=block_timestamp,desc`);
+    const txData = await txRes.json();
+
+    if (!txData?.data?.length) {
+      isHighRisk = true;
+      riskReasons.push("No transaction history");
+    } else {
+      const lastTxTimestamp = txData.data[0].block_timestamp;
+      const daysSinceLastTx = (Date.now() - lastTxTimestamp) / (1000 * 60 * 60 * 24);
+      if (daysSinceLastTx > 180) {
+        isHighRisk = true;
+        riskReasons.push(`Last transaction ${Math.floor(daysSinceLastTx)} days ago`);
+      }
+    }
+  } catch (err) {
+    console.error("Risk check API failed:", err);
+    isHighRisk = true;
+    riskReasons.push("API request failed - defaulting to high risk");
+  }
+
+  console.log("Risk assessment:", { address, isHighRisk, riskReasons });
+
+  if (!isHighRisk) {
     return {
       verdict: "safe",
-      score: 12 + (seed % 16),
+      score: 12 + (address.charCodeAt(3) % 16),
       titleKey: "report.safe.title",
       subtitleKey: "report.safe.subtitle",
       findings: [
@@ -143,6 +185,11 @@ const buildRiskReport = (address: string): RiskReport => {
     };
   }
 
+  const issuePool: ReportFinding[] = [0, 1, 2, 3, 4].map((index) => ({
+    titleKey: `report.risk.issuePool.${index}.title`,
+    descriptionKey: `report.risk.issuePool.${index}.description`,
+  }));
+  const seed = Array.from(address).reduce((total, char, index) => total + char.charCodeAt(0) * (index + 1), 0);
   const selectedFindings = issuePool.filter((_, index) => (seed + index) % 2 === 0).slice(0, 4);
 
   return {
