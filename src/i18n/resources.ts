@@ -1247,7 +1247,7 @@ export const resources = {
       },
       features: {
         title: "핵심 검사 기능",
-        subtitle: "각 기능 카드에는 애니메이션이 포함되어 시스템이 실제로 무엇을 확인하는지 이해하기 쉽습니다.",
+        subtitle: "블랙리스트 자금 식별, 위험 주소 연관 분석, 자금 출처 추적, 주소 행위 분석 등 핵심 검사 역량을 종합적으로 제공합니다.",
         detailExpanded: "상세 내용 펼침",
         clickForDetails: "탭하여 상세 보기",
         items: {
