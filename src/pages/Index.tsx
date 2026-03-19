@@ -701,12 +701,12 @@ const Index = () => {
   }, [stage]);
 
   useEffect(() => {
-    const interval = window.setInterval(() => {
+    const timeout = window.setTimeout(() => {
       setActiveFlowStep((prev) => (prev + 1) % FLOW_STEPS.length);
-    }, 1800);
+    }, 2800);
 
-    return () => window.clearInterval(interval);
-  }, []);
+    return () => window.clearTimeout(timeout);
+  }, [activeFlowStep]);
 
   useEffect(() => {
     if (stage !== "scanning" || !wallet) return;
