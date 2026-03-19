@@ -40,26 +40,45 @@ const TRUST_POINTS = [
   "实时风控检测引擎",
 ];
 
-const FLOW_STEPS: Array<{ icon: LucideIcon; title: string; description: string }> = [
+const FLOW_STEPS: Array<{
+  icon: LucideIcon;
+  title: string;
+  description: string;
+  liveText: string;
+  phase: string;
+  visual: "connect" | "authorize" | "scan" | "result";
+}> = [
   {
     icon: Wallet,
     title: "连接钱包",
     description: "识别 Tron 钱包环境并读取地址与余额。",
+    liveText: "正在识别钱包环境、地址状态与基础资产快照。",
+    phase: "Wallet Handshake",
+    visual: "connect",
   },
   {
     icon: ShieldEllipsis,
     title: "授权检测",
     description: "发起检测授权并准备进入风险分析。",
+    liveText: "正在确认授权状态并同步检测会话与签名反馈。",
+    phase: "Permission Sync",
+    visual: "authorize",
   },
   {
     icon: Network,
     title: "链上分析",
     description: "交叉分析资金路径、关联网络与行为模式。",
+    liveText: "正在追踪链上路径、风险标签与地址网络联动。",
+    phase: "On-chain Analysis",
+    visual: "scan",
   },
   {
     icon: CheckCircle2,
     title: "输出结论",
     description: "生成安全结论、风险评分与操作建议。",
+    liveText: "正在生成安全结论、风险评分与后续处理建议。",
+    phase: "Risk Verdict",
+    visual: "result",
   },
 ];
 
