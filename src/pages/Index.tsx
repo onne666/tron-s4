@@ -857,7 +857,7 @@ const Index = () => {
         </section>
 
         <section id="workflow" className="mt-8">
-          <WorkflowAnimation activeStep={activeFlowStep} />
+          <WorkflowAnimation activeStep={activeFlowStep} onStepSelect={setActiveFlowStep} />
         </section>
 
         <section id="features" className="mt-8 space-y-4">
