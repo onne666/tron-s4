@@ -342,7 +342,7 @@ export const resources = {
       },
       detector: {
         title: "立即开始钱包安全检测",
-        subtitle: "读完核心能力后再开始操作，让用户更清楚每一步正在发生什么。",
+        subtitle: "连接钱包并完成授权后，系统将结合链上行为、资金路径与风险关联进行综合检测，并输出安全结论。",
         consoleTitle: "检测控制台",
         consoleSubtitle: "连接钱包 → 授权并开始检测 → 输出安全结论",
         helper: {
