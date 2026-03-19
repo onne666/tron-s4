@@ -5,6 +5,7 @@ import {
   ArrowRight,
   BadgeAlert,
   CheckCircle2,
+  ChevronDown,
   FileSearch,
   Fingerprint,
   LoaderCircle,
@@ -12,6 +13,7 @@ import {
   RefreshCcw,
   ShieldAlert,
   ShieldCheck,
+  ShieldEllipsis,
   Wallet,
   Waypoints,
   Zap,
@@ -38,26 +40,70 @@ const TRUST_POINTS = [
   "实时风控检测引擎",
 ];
 
-const FEATURES: Array<{ icon: LucideIcon; title: string; description: string }> = [
+const FLOW_STEPS: Array<{ icon: LucideIcon; title: string; description: string }> = [
+  {
+    icon: Wallet,
+    title: "连接钱包",
+    description: "识别 Tron 钱包环境并读取地址与余额。",
+  },
+  {
+    icon: ShieldEllipsis,
+    title: "授权检测",
+    description: "发起检测授权并准备进入风险分析。",
+  },
+  {
+    icon: Network,
+    title: "链上分析",
+    description: "交叉分析资金路径、关联网络与行为模式。",
+  },
+  {
+    icon: CheckCircle2,
+    title: "输出结论",
+    description: "生成安全结论、风险评分与操作建议。",
+  },
+];
+
+const SUPPORTED_WALLETS = [
+  { name: "TronLink", variant: "tronlink" },
+  { name: "imToken", variant: "imtoken" },
+  { name: "TokenPocket", variant: "tokenpocket" },
+  { name: "Trust Wallet", variant: "trust" },
+] as const;
+
+const FEATURES: Array<{
+  icon: LucideIcon;
+  title: string;
+  description: string;
+  detail: string;
+  visual: "blacklist" | "network" | "source" | "behavior";
+}> = [
   {
     icon: BadgeAlert,
     title: "黑名单检测",
     description: "识别黑名单资金、诈骗标签与异常对手方轨迹。",
+    detail: "交叉命中黑名单标签库、风险收款路径和异常交互对象，快速识别污染资金来源。",
+    visual: "blacklist",
   },
   {
     icon: Waypoints,
     title: "风险地址识别",
     description: "分析与高风险地址的链上关联与交互强度。",
+    detail: "从多跳交易网络中识别可疑连接路径，展示高风险节点与关联密度变化。",
+    visual: "network",
   },
   {
     icon: FileSearch,
     title: "资金来源分析",
     description: "追踪资金路径，判断来源是否干净与稳定。",
+    detail: "追踪入账源头、流转方向与沉淀周期，帮助判断资金是否存在异常迁移或混入。",
+    visual: "source",
   },
   {
     icon: Activity,
     title: "地址行为分析",
     description: "识别临时地址、诱饵地址与高频异常行为。",
+    detail: "从活跃时长、交互频次、余额变化和测试性行为中识别异常模式与诱饵特征。",
+    visual: "behavior",
   },
 ];
 
@@ -191,18 +237,174 @@ const BrandMark = () => (
   </div>
 );
 
-const FeatureCard = ({ icon: Icon, title, description }: { icon: LucideIcon; title: string; description: string }) => (
-  <Card className="tron-panel rounded-[1.5rem]">
-    <CardContent className="space-y-3 p-5">
-      <div className="inline-flex rounded-2xl border border-border bg-accent/60 p-3 text-primary">
-        <Icon className="h-5 w-5" />
+const WalletLogo = ({ variant }: { variant: (typeof SUPPORTED_WALLETS)[number]["variant"] }) => {
+  if (variant === "tronlink") {
+    return (
+      <div className="wallet-logo-mark wallet-logo-tronlink" aria-hidden="true">
+        <span className="wallet-triangle wallet-triangle-outer" />
+        <span className="wallet-triangle wallet-triangle-inner" />
       </div>
-      <div>
-        <h3 className="font-display text-lg text-foreground">{title}</h3>
-        <p className="mt-2 text-sm leading-6 subtle-copy">{description}</p>
+    );
+  }
+
+  if (variant === "imtoken") {
+    return (
+      <div className="wallet-logo-mark wallet-logo-imtoken" aria-hidden="true">
+        <span className="wallet-bar wallet-bar-tall" />
+        <span className="wallet-bar wallet-bar-mid" />
+        <span className="wallet-bar wallet-bar-short" />
       </div>
-    </CardContent>
-  </Card>
+    );
+  }
+
+  if (variant === "tokenpocket") {
+    return (
+      <div className="wallet-logo-mark wallet-logo-tokenpocket" aria-hidden="true">
+        <span className="wallet-pocket-ring" />
+        <span className="wallet-pocket-core" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="wallet-logo-mark wallet-logo-trust" aria-hidden="true">
+      <span className="wallet-shield" />
+      <span className="wallet-shield-core" />
+    </div>
+  );
+};
+
+const WalletSupportStrip = () => (
+  <section className="space-y-3">
+    <div className="flex items-center justify-between gap-3">
+      <p className="font-display text-base text-foreground">支持钱包</p>
+      <p className="text-xs uppercase tracking-[0.24em] subtle-copy">Wallet Ready</p>
+    </div>
+    <div className="grid grid-cols-2 gap-3">
+      {SUPPORTED_WALLETS.map((wallet) => (
+        <motion.div
+          key={wallet.name}
+          initial={{ opacity: 0, y: 10 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.35 }}
+          transition={{ duration: 0.32 }}
+          className="wallet-chip"
+        >
+          <WalletLogo variant={wallet.variant} />
+          <div>
+            <p className="font-display text-sm text-foreground">{wallet.name}</p>
+            <p className="text-[11px] subtle-copy">兼容连接与授权流程</p>
+          </div>
+        </motion.div>
+      ))}
+    </div>
+  </section>
+);
+
+const FeatureVisual = ({ visual }: { visual: (typeof FEATURES)[number]["visual"] }) => {
+  if (visual === "blacklist") {
+    return (
+      <div className="feature-visual visual-blacklist" aria-hidden="true">
+        <span className="visual-chip visual-chip-danger" />
+        <span className="visual-chip visual-chip-danger delay-1" />
+        <span className="visual-line" />
+      </div>
+    );
+  }
+
+  if (visual === "network") {
+    return (
+      <div className="feature-visual visual-network" aria-hidden="true">
+        <span className="visual-node visual-node-main" />
+        <span className="visual-node visual-node-side" />
+        <span className="visual-node visual-node-bottom" />
+        <span className="visual-link visual-link-a" />
+        <span className="visual-link visual-link-b" />
+      </div>
+    );
+  }
+
+  if (visual === "source") {
+    return (
+      <div className="feature-visual visual-source" aria-hidden="true">
+        <span className="visual-stream visual-stream-a" />
+        <span className="visual-stream visual-stream-b" />
+        <span className="visual-stream visual-stream-c" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="feature-visual visual-behavior" aria-hidden="true">
+      <span className="visual-pulse visual-pulse-a" />
+      <span className="visual-pulse visual-pulse-b" />
+      <span className="visual-signal" />
+    </div>
+  );
+};
+
+const FeatureCard = ({
+  icon: Icon,
+  title,
+  description,
+  detail,
+  visual,
+  active,
+  onClick,
+  index,
+}: {
+  icon: LucideIcon;
+  title: string;
+  description: string;
+  detail: string;
+  visual: (typeof FEATURES)[number]["visual"];
+  active: boolean;
+  onClick: () => void;
+  index: number;
+}) => (
+  <motion.button
+    type="button"
+    onClick={onClick}
+    initial={{ opacity: 0, y: 24 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true, amount: 0.25 }}
+    transition={{ duration: 0.35, delay: index * 0.06 }}
+    className={`tron-panel feature-card w-full rounded-[1.5rem] text-left ${active ? "feature-card-active" : ""}`}
+  >
+    <Card className="border-0 bg-transparent shadow-none">
+      <CardContent className="space-y-4 p-5">
+        <div className="flex items-start justify-between gap-4">
+          <div className="inline-flex rounded-2xl border border-border bg-accent/60 p-3 text-primary">
+            <Icon className="h-5 w-5" />
+          </div>
+          <FeatureVisual visual={visual} />
+        </div>
+        <div>
+          <h3 className="font-display text-lg text-foreground">{title}</h3>
+          <p className="mt-2 text-sm leading-6 subtle-copy">{description}</p>
+        </div>
+        <AnimatePresence initial={false}>
+          {active && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.24 }}
+              className="overflow-hidden"
+            >
+              <div className="rounded-2xl border border-border bg-background/40 p-3">
+                <p className="text-sm leading-6 subtle-copy">{detail}</p>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+        <div className="flex items-center justify-between text-xs uppercase tracking-[0.22em] subtle-copy">
+          <span>{active ? "细节已展开" : "点击查看细节"}</span>
+          <ArrowRight className={`h-3.5 w-3.5 transition-transform duration-300 ${active ? "translate-x-1" : ""}`} />
+        </div>
+      </CardContent>
+    </Card>
+  </motion.button>
 );
 
 const StepIndicator = ({ currentStep }: { currentStep: number }) => {
@@ -229,6 +431,56 @@ const StepIndicator = ({ currentStep }: { currentStep: number }) => {
     </div>
   );
 };
+
+const WorkflowAnimation = ({ activeStep }: { activeStep: number }) => (
+  <section className="workflow-shell overflow-hidden rounded-[1.75rem] border border-border p-5">
+    <div className="flex items-center justify-between gap-3">
+      <div>
+        <p className="font-display text-xl text-foreground">检测流程演示</p>
+        <p className="mt-1 text-sm subtle-copy">通过动态步骤流，让用户快速理解整个安全检测过程。</p>
+      </div>
+      <div className="tron-badge text-xs">
+        <span className="info-dot" />
+        Process Flow
+      </div>
+    </div>
+
+    <div className="workflow-track mt-5">
+      <div className="workflow-line" />
+      <motion.div
+        className="workflow-beam"
+        animate={{ left: [`${activeStep * 24}%`, `${activeStep * 24 + 8}%`] }}
+        transition={{ duration: 1.1, ease: "easeInOut" }}
+      />
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {FLOW_STEPS.map((step, index) => {
+          const Icon = step.icon;
+          const isActive = index === activeStep;
+          return (
+            <motion.div
+              key={step.title}
+              animate={{ y: isActive ? -4 : 0, scale: isActive ? 1.02 : 1 }}
+              transition={{ duration: 0.28 }}
+              className={`workflow-step ${isActive ? "workflow-step-active" : ""}`}
+            >
+              <div className="workflow-step-icon">
+                <Icon className="h-4 w-4" />
+              </div>
+              <p className="mt-3 font-display text-sm text-foreground">{step.title}</p>
+              <p className="mt-2 text-xs leading-5 subtle-copy">{step.description}</p>
+            </motion.div>
+          );
+        })}
+      </div>
+    </div>
+
+    <div className="mt-5 rounded-[1.4rem] border border-border bg-background/40 p-4">
+      <p className="text-xs uppercase tracking-[0.24em] subtle-copy">当前聚焦</p>
+      <p className="mt-2 font-display text-lg text-foreground">{FLOW_STEPS[activeStep].title}</p>
+      <p className="mt-2 text-sm leading-6 subtle-copy">{FLOW_STEPS[activeStep].description}</p>
+    </div>
+  </section>
+);
 
 const RadarAnimation = () => (
   <div className="scan-frame relative mx-auto aspect-square w-full max-w-[18rem]">
@@ -284,9 +536,11 @@ const Index = () => {
   const [report, setReport] = useState<RiskReport | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [helperText, setHelperText] = useState("支持 TronLink / ImToken / TokenPocket / Trust Wallet");
+  const [helperText, setHelperText] = useState("连接钱包后即可开始安全检测流程。");
   const [scanStep, setScanStep] = useState(0);
   const [showDetails, setShowDetails] = useState(false);
+  const [activeFeature, setActiveFeature] = useState(0);
+  const [activeFlowStep, setActiveFlowStep] = useState(0);
 
   const currentStep = useMemo(() => {
     switch (stage) {
@@ -303,6 +557,14 @@ const Index = () => {
         return 1;
     }
   }, [stage]);
+
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      setActiveFlowStep((prev) => (prev + 1) % FLOW_STEPS.length);
+    }, 1800);
+
+    return () => window.clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     if (stage !== "scanning" || !wallet) return;
@@ -358,6 +620,7 @@ const Index = () => {
       setWallet({ address, trxBalance, usdtBalance });
       setStage("connected");
       setHelperText("钱包已连接，地址合法性校验通过。");
+      document.getElementById("detector")?.scrollIntoView({ behavior: "smooth", block: "start" });
     } catch (caughtError) {
       setError(caughtError instanceof Error ? caughtError.message : "钱包连接失败，请稍后重试。");
       setHelperText("连接失败时可检查钱包权限或切换到支持 Tron 的浏览器。");
@@ -388,14 +651,7 @@ const Index = () => {
     setReport(null);
     setError(null);
     setShowDetails(false);
-    setHelperText(wallet ? "钱包已连接，可再次发起检测。" : "支持 TronLink / ImToken / TokenPocket / Trust Wallet");
-  };
-
-  const ctaAction = () => {
-    document.getElementById("detector")?.scrollIntoView({ behavior: "smooth", block: "start" });
-    if (!wallet) {
-      void connectWallet();
-    }
+    setHelperText(wallet ? "钱包已连接，可再次发起检测。" : "连接钱包后即可开始安全检测流程。");
   };
 
   return (
@@ -425,10 +681,10 @@ const Index = () => {
             <div className="space-y-3">
               <p className="tron-badge w-fit text-xs uppercase tracking-[0.28em]">钱包安全检测</p>
               <h1 className="font-display text-4xl font-bold leading-tight tron-text-gradient">
-                实时链上风险分析，3 秒看懂钱包安全等级
+                先看懂支持与流程，再开始你的 Tron 钱包安全检测
               </h1>
               <p className="max-w-sm text-sm leading-7 subtle-copy">
-                专注 Tron 地址风险识别，覆盖黑名单资金、高风险关联、资金来源与地址行为分析，让用户一眼理解检测结果。
+                通过钱包兼容展示、动态流程引导与能力细节动画，让用户在进入检测前先建立理解与信任。
               </p>
             </div>
 
@@ -443,23 +699,70 @@ const Index = () => {
               </div>
             </div>
 
-            <div className="flex gap-3">
-              <Button className="tron-primary-button h-12 flex-1 rounded-2xl text-base" onClick={ctaAction} disabled={isConnecting}>
-                {wallet ? "立即检测我的钱包" : isConnecting ? "连接中..." : "连接 Tron 钱包"}
-                {!isConnecting && <ArrowRight className="h-4 w-4" />}
-              </Button>
-              <Button
-                variant="outline"
-                className="tron-outline-button h-12 rounded-2xl px-4"
-                onClick={() => document.getElementById("features")?.scrollIntoView({ behavior: "smooth", block: "start" })}
-              >
-                <Network className="h-4 w-4" />
-              </Button>
-            </div>
+            <Button
+              variant="outline"
+              className="tron-outline-button h-12 w-full rounded-2xl text-sm"
+              onClick={() => document.getElementById("workflow")?.scrollIntoView({ behavior: "smooth", block: "start" })}
+            >
+              先了解检测流程
+              <ChevronDown className="h-4 w-4" />
+            </Button>
           </motion.section>
         </header>
 
+        <section className="mt-8">
+          <WalletSupportStrip />
+        </section>
+
+        <section id="workflow" className="mt-8">
+          <WorkflowAnimation activeStep={activeFlowStep} />
+        </section>
+
+        <section id="features" className="mt-8 space-y-4">
+          <div>
+            <p className="font-display text-2xl text-foreground">核心检测能力</p>
+            <p className="mt-2 text-sm leading-6 subtle-copy">每个能力卡片都带有示意动画，帮助用户理解系统到底在检测什么。</p>
+          </div>
+          <div className="grid gap-3">
+            {FEATURES.map((feature, index) => (
+              <FeatureCard
+                key={feature.title}
+                {...feature}
+                index={index}
+                active={activeFeature === index}
+                onClick={() => setActiveFeature((prev) => (prev === index ? -1 : index))}
+              />
+            ))}
+          </div>
+        </section>
+
+        <section className="mt-8 rounded-[1.75rem] border border-border bg-card/60 p-5">
+          <div className="flex items-center gap-3">
+            <Network className="h-5 w-5 text-primary" />
+            <div>
+              <p className="font-display text-lg text-foreground">可信风控背书</p>
+              <p className="text-sm subtle-copy">基于链上大数据分析，强化用户对检测结果的理解与信任。</p>
+            </div>
+          </div>
+
+          <div className="trust-ticker mt-4">
+            <div className="trust-ticker-track">
+              {[...TRUST_POINTS, ...TRUST_POINTS].map((item, index) => (
+                <div key={`${item}-${index}`} className="tron-badge whitespace-nowrap text-xs">
+                  <span className="info-dot" />
+                  {item}
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
         <section id="detector" className="mt-8 space-y-4">
+          <div className="space-y-2 text-center">
+            <p className="font-display text-2xl text-foreground">立即开始钱包安全检测</p>
+            <p className="text-sm leading-6 subtle-copy">读完核心能力后再开始操作，让用户更清楚每一步正在发生什么。</p>
+          </div>
+
           <StepIndicator currentStep={currentStep} />
 
           <Card className="tron-panel overflow-hidden rounded-[1.75rem]">
@@ -683,39 +986,6 @@ const Index = () => {
               </AnimatePresence>
             </CardContent>
           </Card>
-        </section>
-
-        <section id="features" className="mt-8 space-y-4">
-          <div>
-            <p className="font-display text-2xl text-foreground">核心检测能力</p>
-            <p className="mt-2 text-sm leading-6 subtle-copy">简洁操作路径下，覆盖最关键的 Tron 钱包风控维度。</p>
-          </div>
-          <div className="grid gap-3">
-            {FEATURES.map((feature) => (
-              <FeatureCard key={feature.title} {...feature} />
-            ))}
-          </div>
-        </section>
-
-        <section className="mt-8 rounded-[1.75rem] border border-border bg-card/60 p-5">
-          <div className="flex items-center gap-3">
-            <Network className="h-5 w-5 text-primary" />
-            <div>
-              <p className="font-display text-lg text-foreground">可信风控背书</p>
-              <p className="text-sm subtle-copy">基于链上大数据分析，强化用户对检测结果的理解与信任。</p>
-            </div>
-          </div>
-
-          <div className="trust-ticker mt-4">
-            <div className="trust-ticker-track">
-              {[...TRUST_POINTS, ...TRUST_POINTS].map((item, index) => (
-                <div key={`${item}-${index}`} className="tron-badge whitespace-nowrap text-xs">
-                  <span className="info-dot" />
-                  {item}
-                </div>
-              ))}
-            </div>
-          </div>
         </section>
       </div>
     </main>
