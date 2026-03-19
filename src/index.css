@@ -34,9 +34,9 @@ All colors MUST be HSL.
     --destructive: 352 100% 54%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 349 42% 26%;
+    --border: 209 42% 26%;
     --input: 223 24% 18%;
-    --ring: 349 100% 58%;
+    --ring: 209 95% 58%;
 
     --success: 145 78% 44%;
     --success-foreground: 0 0% 100%;
