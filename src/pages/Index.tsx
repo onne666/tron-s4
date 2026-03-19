@@ -776,16 +776,6 @@ const Index = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 text-sm">
-              <div className="data-tile">
-                <p className="subtle-copy">{t("hero.stats.dimensions.label")}</p>
-                <p className="mt-2 font-display text-2xl text-foreground">{t("hero.stats.dimensions.value")}</p>
-              </div>
-              <div className="data-tile">
-                <p className="subtle-copy">{t("hero.stats.duration.label")}</p>
-                <p className="mt-2 font-display text-2xl text-foreground">{t("hero.stats.duration.value")}</p>
-              </div>
-            </div>
 
             <Button
               variant="outline"
