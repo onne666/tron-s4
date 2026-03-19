@@ -339,7 +339,7 @@ const Index = () => {
       const injectedTronWeb = window.tronWeb;
       const address = injectedTronWeb?.defaultAddress?.base58;
 
-      if (!address || !TronWeb.isAddress(address)) {
+      if (!address || !TronWeb.utils.address.isAddress(address)) {
         throw new Error("未检测到可用的 Tron 钱包，请在 TronLink 或钱包内置浏览器中打开。");
       }
 
