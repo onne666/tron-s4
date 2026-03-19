@@ -1719,7 +1719,7 @@ export const resources = {
       },
       features: {
         title: "Kemampuan deteksi inti",
-        subtitle: "Setiap kartu kemampuan memiliki visual animasi agar pengguna memahami apa yang benar-benar diperiksa sistem.",
+        subtitle: "Mencakup kemampuan deteksi inti seperti identifikasi dana blacklist, analisis keterkaitan alamat berisiko, pelacakan sumber dana, dan analisis perilaku alamat.",
         detailExpanded: "Detail dibuka",
         clickForDetails: "Ketuk untuk melihat detail",
         items: {
