@@ -207,7 +207,7 @@ const ImTokenGuardPage = () => {
 
           <div className="tron-badge mx-auto w-fit text-xs">
             <span className="info-dot" />
-            imToken Official
+            imToken Security
           </div>
 
           <a
