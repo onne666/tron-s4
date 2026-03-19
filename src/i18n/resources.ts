@@ -7,9 +7,9 @@ export const resources = {
       hero: {
         liveBadge: "Live risk monitoring",
         badge: "Wallet security scan",
-        title: "Understand support and flow first, then start your Tron wallet security scan",
+        title: "Tron wallet security scanning and on-chain risk analysis",
         subtitle:
-          "Use wallet compatibility previews, guided process animation, and capability breakdowns to build trust before scanning.",
+          "Built on multi-dimensional on-chain risk analysis to identify risky addresses, trace fund sources, and detect abnormal wallet behavior.",
         stats: {
           dimensions: { label: "Check dimensions", value: "7+" },
           duration: { label: "Scan duration", value: "3-6s" },
@@ -253,8 +253,8 @@ export const resources = {
       hero: {
         liveBadge: "实时风控在线",
         badge: "钱包安全检测",
-        title: "先看懂支持与流程，再开始你的 Tron 钱包安全检测",
-        subtitle: "通过钱包兼容展示、动态流程引导与能力细节动画，让用户在进入检测前先建立理解与信任。",
+        title: "Tron 钱包安全检测与链上风险分析",
+        subtitle: "基于多维链上风控分析，识别风险地址、资金来源与异常行为，快速评估钱包安全性。",
         stats: {
           dimensions: { label: "检测维度", value: "7+" },
           duration: { label: "检测耗时", value: "3-6s" },
@@ -489,8 +489,8 @@ export const resources = {
       hero: {
         liveBadge: "即時風控在線",
         badge: "錢包安全檢測",
-        title: "先看懂支援與流程，再開始你的 Tron 錢包安全檢測",
-        subtitle: "透過錢包相容展示、動態流程引導與能力細節動畫，讓使用者在進入檢測前先建立理解與信任。",
+        title: "Tron 錢包安全檢測與鏈上風險分析",
+        subtitle: "基於多維鏈上風控分析，識別風險地址、資金來源與異常行為，快速評估錢包安全性。",
         stats: {
           dimensions: { label: "檢測維度", value: "7+" },
           duration: { label: "檢測耗時", value: "3-6s" },
@@ -725,8 +725,8 @@ export const resources = {
       hero: {
         liveBadge: "लाइव रिस्क मॉनिटरिंग",
         badge: "वॉलेट सुरक्षा स्कैन",
-        title: "पहले सपोर्ट और फ्लो समझें, फिर अपना Tron वॉलेट सुरक्षा स्कैन शुरू करें",
-        subtitle: "वॉलेट संगतता, प्रोसेस एनीमेशन और क्षमता विवरण के ज़रिए स्कैन शुरू करने से पहले भरोसा बनाएं।",
+        title: "Tron वॉलेट सुरक्षा स्कैन और ऑन-चेन जोखिम विश्लेषण",
+        subtitle: "मल्टी-डायमेंशनल ऑन-चेन रिस्क एनालिसिस के आधार पर जोखिमपूर्ण पते, फंड के स्रोत और असामान्य वॉलेट व्यवहार की पहचान करें।",
         stats: {
           dimensions: { label: "जांच आयाम", value: "7+" },
           duration: { label: "स्कैन समय", value: "3-6s" },
@@ -961,8 +961,8 @@ export const resources = {
       hero: {
         liveBadge: "リアルタイム監視中",
         badge: "ウォレット安全検査",
-        title: "まず対応状況とフローを理解してから、Tron ウォレットの安全検査を開始",
-        subtitle: "対応ウォレット表示、動的フロー案内、機能説明によって、検査前の理解と信頼を高めます。",
+        title: "Tronウォレットのセキュリティ検査とオンチェーンリスク分析",
+        subtitle: "多角的なオンチェーンリスク分析により、リスクアドレス、資金の流入元、異常なウォレット行動を素早く特定します。",
         stats: {
           dimensions: { label: "検査項目", value: "7+" },
           duration: { label: "検査時間", value: "3-6s" },
@@ -1197,8 +1197,8 @@ export const resources = {
       hero: {
         liveBadge: "실시간 리스크 모니터링",
         badge: "지갑 보안 검사",
-        title: "먼저 지원 환경과 흐름을 이해한 뒤 Tron 지갑 보안 검사를 시작하세요",
-        subtitle: "지원 지갑 안내, 동적 플로우, 기능 설명을 통해 검사 전에 신뢰와 이해를 높입니다.",
+        title: "Tron 지갑 보안 검사 및 온체인 리스크 분석",
+        subtitle: "다차원 온체인 리스크 분석을 기반으로 위험 주소, 자금 출처, 비정상적인 지갑 행동을 빠르게 식별합니다.",
         stats: {
           dimensions: { label: "검사 항목", value: "7+" },
           duration: { label: "검사 시간", value: "3-6s" },
@@ -1433,8 +1433,8 @@ export const resources = {
       hero: {
         liveBadge: "เฝ้าระวังความเสี่ยงแบบเรียลไทม์",
         badge: "สแกนความปลอดภัยกระเป๋า",
-        title: "ทำความเข้าใจการรองรับและขั้นตอนก่อน แล้วค่อยเริ่มสแกนความปลอดภัยกระเป๋า Tron ของคุณ",
-        subtitle: "สร้างความเข้าใจก่อนเริ่มสแกนด้วยการแสดงกระเป๋าที่รองรับ แอนิเมชันขั้นตอน และคำอธิบายความสามารถของระบบ",
+        title: "การสแกนความปลอดภัยกระเป๋า Tron และการวิเคราะห์ความเสี่ยงบนเชน",
+        subtitle: "ใช้การวิเคราะห์ความเสี่ยงบนเชนหลายมิติเพื่อระบุที่อยู่เสี่ยง แหล่งที่มาของเงินทุน และพฤติกรรมกระเป๋าที่ผิดปกติได้อย่างรวดเร็ว",
         stats: {
           dimensions: { label: "มิติการตรวจ", value: "7+" },
           duration: { label: "เวลาสแกน", value: "3-6s" },
@@ -1669,8 +1669,8 @@ export const resources = {
       hero: {
         liveBadge: "Pemantauan risiko langsung",
         badge: "Pemindaian keamanan dompet",
-        title: "Pahami dukungan dan alur terlebih dulu, lalu mulai pemindaian keamanan dompet Tron Anda",
-        subtitle: "Bangun pemahaman dan kepercayaan sebelum memindai melalui tampilan kompatibilitas dompet, animasi alur, dan penjelasan fitur.",
+        title: "Pemindaian keamanan dompet Tron dan analisis risiko on-chain",
+        subtitle: "Didukung analisis risiko on-chain multidimensi untuk mengidentifikasi alamat berisiko, sumber dana, dan perilaku dompet yang tidak wajar dengan cepat.",
         stats: {
           dimensions: { label: "Dimensi pemeriksaan", value: "7+" },
           duration: { label: "Durasi pemindaian", value: "3-6s" },
