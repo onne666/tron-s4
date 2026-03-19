@@ -104,7 +104,7 @@ export const resources = {
       },
       detector: {
         title: "Start wallet security scan now",
-        subtitle: "After reviewing the flow, users can better understand what happens at every step.",
+        subtitle: "After wallet connection and authorization, the system analyzes on-chain behavior, fund flows, and risk associations to produce a security verdict.",
         consoleTitle: "Detection console",
         consoleSubtitle: "Connect wallet → authorize and scan → receive a security verdict",
         helper: {
@@ -342,7 +342,7 @@ export const resources = {
       },
       detector: {
         title: "立即开始钱包安全检测",
-        subtitle: "读完核心能力后再开始操作，让用户更清楚每一步正在发生什么。",
+        subtitle: "连接钱包并完成授权后，系统将结合链上行为、资金路径与风险关联进行综合检测，并输出安全结论。",
         consoleTitle: "检测控制台",
         consoleSubtitle: "连接钱包 → 授权并开始检测 → 输出安全结论",
         helper: {
@@ -578,7 +578,7 @@ export const resources = {
       },
       detector: {
         title: "立即開始錢包安全檢測",
-        subtitle: "讀完核心能力後再開始操作，讓使用者更清楚每一步正在發生什麼。",
+        subtitle: "連接錢包並完成授權後，系統將結合鏈上行為、資金路徑與風險關聯進行綜合檢測，並輸出安全結論。",
         consoleTitle: "檢測控制台",
         consoleSubtitle: "連接錢包 → 授權並開始檢測 → 輸出安全結論",
         helper: {
@@ -814,7 +814,7 @@ export const resources = {
       },
       detector: {
         title: "अभी वॉलेट सुरक्षा स्कैन शुरू करें",
-        subtitle: "फ्लो समझने के बाद उपयोगकर्ता हर चरण को अधिक स्पष्ट रूप से समझ पाते हैं।",
+        subtitle: "वॉलेट कनेक्ट और ऑथराइज़ होने के बाद, सिस्टम ऑन-चेन व्यवहार, फंड फ्लो और जोखिम संबंधों का विश्लेषण करके सुरक्षा निष्कर्ष देता है।",
         consoleTitle: "डिटेक्शन कंसोल",
         consoleSubtitle: "वॉलेट कनेक्ट करें → ऑथराइज करें और स्कैन करें → सुरक्षा निष्कर्ष प्राप्त करें",
         helper: {
@@ -1050,7 +1050,7 @@ export const resources = {
       },
       detector: {
         title: "今すぐウォレット安全検査を開始",
-        subtitle: "フローを理解した後に操作することで、各ステップで何が起きているかを把握しやすくなります。",
+        subtitle: "ウォレット接続と承認の完了後、システムはオンチェーン行動、資金経路、リスク関連性を分析し、安全判定を出力します。",
         consoleTitle: "検査コンソール",
         consoleSubtitle: "ウォレット接続 → 承認して検査開始 → 安全判定を受け取る",
         helper: {
@@ -1286,7 +1286,7 @@ export const resources = {
       },
       detector: {
         title: "지금 지갑 보안 검사를 시작하세요",
-        subtitle: "흐름을 먼저 이해하면 각 단계에서 무엇이 일어나는지 더 명확하게 볼 수 있습니다.",
+        subtitle: "지갑 연결과 승인이 완료되면 시스템이 온체인 행동, 자금 흐름, 위험 연관성을 분석해 보안 판정을 제공합니다.",
         consoleTitle: "검사 콘솔",
         consoleSubtitle: "지갑 연결 → 승인 후 검사 시작 → 보안 결론 확인",
         helper: {
@@ -1522,7 +1522,7 @@ export const resources = {
       },
       detector: {
         title: "เริ่มสแกนความปลอดภัยกระเป๋าทันที",
-        subtitle: "เมื่อเข้าใจขั้นตอนก่อนแล้ว ผู้ใช้จะมองเห็นได้ชัดขึ้นว่าแต่ละช่วงกำลังเกิดอะไรขึ้น",
+        subtitle: "หลังจากเชื่อมต่อกระเป๋าและยืนยันสิทธิ์แล้ว ระบบจะวิเคราะห์พฤติกรรมบนเชน เส้นทางเงินทุน และความเชื่อมโยงของความเสี่ยง เพื่อสรุปผลความปลอดภัย",
         consoleTitle: "คอนโซลการตรวจจับ",
         consoleSubtitle: "เชื่อมต่อกระเป๋า → อนุญาตและสแกน → รับผลด้านความปลอดภัย",
         helper: {
@@ -1758,7 +1758,7 @@ export const resources = {
       },
       detector: {
         title: "Mulai pemindaian keamanan dompet sekarang",
-        subtitle: "Setelah memahami alurnya, pengguna akan lebih mudah melihat apa yang terjadi di setiap tahap.",
+        subtitle: "Setelah dompet terhubung dan otorisasi selesai, sistem menganalisis perilaku on-chain, alur dana, dan keterkaitan risiko untuk menghasilkan kesimpulan keamanan.",
         consoleTitle: "Konsol deteksi",
         consoleSubtitle: "Hubungkan dompet → otorisasi dan pindai → terima putusan keamanan",
         helper: {
