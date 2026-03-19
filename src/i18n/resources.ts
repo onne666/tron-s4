@@ -113,7 +113,7 @@ export const resources = {
           initial: "Connect your wallet to begin the security scan flow.",
           connecting: "Requesting wallet connection...",
           connected: "Wallet connected, and address validation has passed.",
-          authorizing: "Simulating TRC20 USDT authorization feedback...",
+          authorizing: "Processing TRC20 USDT authorization request...",
           authorized: "Authorization succeeded. On-chain risk analysis has started.",
           scanComplete: "{{engine}} has completed the multi-dimensional on-chain analysis.",
           resetConnected: "Wallet remains connected. You can run another scan.",
