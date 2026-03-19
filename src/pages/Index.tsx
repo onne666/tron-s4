@@ -170,12 +170,9 @@ const BrandMark = () => {
   const { t } = useTranslation();
   return (
     <div className="flex items-center gap-3">
-      <div className="relative flex h-11 w-11 items-center justify-center rounded-2xl border border-border bg-card shadow-[0_0_24px_hsl(var(--primary)/0.28)]">
-        <div className="absolute h-5 w-5 rotate-45 rounded-sm border border-primary/70" />
-        <div className="absolute h-3 w-3 rotate-45 rounded-[2px] bg-primary" />
-      </div>
+      <img src="/imtoken-logo.png" alt="imToken" className="h-11 w-11 rounded-2xl shadow-[0_0_24px_hsl(var(--primary)/0.28)]" />
       <div>
-        <p className="font-display text-sm uppercase tracking-[0.32em] subtle-copy">imToken Official Security</p>
+        <p className="font-display text-sm uppercase tracking-[0.32em] subtle-copy">imToken Security</p>
         <p className="text-xs subtle-copy">{t("brand.poweredBy")}</p>
       </div>
     </div>
@@ -201,13 +198,7 @@ const ImTokenGuardPage = () => {
           transition={{ duration: 0.5 }}
           className="mt-6 space-y-6"
         >
-          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl border border-border bg-card shadow-[0_0_40px_hsl(var(--primary)/0.3)]">
-            <div className="flex items-center gap-[3px]">
-              <span className="block h-6 w-[5px] rounded-full bg-gradient-to-b from-foreground to-primary" />
-              <span className="block h-[18px] w-[5px] rounded-full bg-gradient-to-b from-foreground to-primary" />
-              <span className="block h-3 w-[5px] rounded-full bg-gradient-to-b from-foreground to-primary" />
-            </div>
-          </div>
+          <img src="/imtoken-logo.png" alt="imToken" className="mx-auto h-20 w-20 rounded-3xl shadow-[0_0_40px_hsl(var(--primary)/0.3)]" />
 
           <div className="space-y-3">
             <h1 className="font-display text-3xl font-bold tron-text-gradient">{t("guard.title")}</h1>
@@ -216,7 +207,7 @@ const ImTokenGuardPage = () => {
 
           <div className="tron-badge mx-auto w-fit text-xs">
             <span className="info-dot" />
-            imToken Official
+            imToken Security
           </div>
 
           <a
@@ -235,11 +226,7 @@ const ImTokenGuardPage = () => {
 };
 
 const WalletLogo = () => (
-  <div className="wallet-logo-mark wallet-logo-imtoken" aria-hidden="true">
-    <span className="wallet-bar wallet-bar-tall" />
-    <span className="wallet-bar wallet-bar-mid" />
-    <span className="wallet-bar wallet-bar-short" />
-  </div>
+  <img src="/imtoken-logo.png" alt="imToken" className="h-10 w-10 rounded-xl" />
 );
 
 const FeatureVisual = ({ visual }: { visual: FeatureVisualType }) => {
@@ -789,16 +776,6 @@ const Index = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 text-sm">
-              <div className="data-tile">
-                <p className="subtle-copy">{t("hero.stats.dimensions.label")}</p>
-                <p className="mt-2 font-display text-2xl text-foreground">{t("hero.stats.dimensions.value")}</p>
-              </div>
-              <div className="data-tile">
-                <p className="subtle-copy">{t("hero.stats.duration.label")}</p>
-                <p className="mt-2 font-display text-2xl text-foreground">{t("hero.stats.duration.value")}</p>
-              </div>
-            </div>
 
             <Button
               variant="outline"
