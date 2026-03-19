@@ -1,67 +1,69 @@
 
 
-## 修改计划：imToken 专属化改造
+## 修改计划：去掉"官方/指定"字眼 + 优化首页布局 + 加入 imToken logo
 
-### 目标
-1. 仅支持 imToken 钱包，移除 TronLink / TokenPocket / Trust Wallet
-2. 非 imToken 浏览器环境下拦截访问，显示引导页
-3. 页面品牌重塑，突出与 imToken 的官方合作/指定关系
+### 问题分析
+1. 页面多处出现"官方指定""Official"等字眼，显得刻意不可信
+2. 首页 hero 区的"检测维度 7+"和"检测耗时 3-6s"两个 data-tile 占空间大但信息价值低
+3. 页面上没有出现 imToken 的品牌 logo/icon
+4. 网站 favicon 也不是 imToken 的 icon
 
 ---
 
-### 一、imToken 环境检测与拦截
+### 一、文案去官方化（`resources.ts` 全部 8 种语言）
 
-在 `Index.tsx` 顶层增加 imToken 浏览器检测逻辑：
-- 通过 `navigator.userAgent` 检测是否包含 `imToken` 标识
-- 若非 imToken 环境，渲染一个全屏拦截页面，显示 imToken logo、提示文案（"本页面仅限在 imToken 钱包浏览器中访问"），以及一个"在 imToken 中打开"的引导按钮（使用 imToken 的 deep link 跳转）
-- 拦截页面需要多语言支持，在 `resources.ts` 中添加对应翻译
+把所有"官方""指定""Official""Designated"替换为更自然的表述：
 
-### 二、移除多钱包支持
+| 原文 | 改为 |
+|---|---|
+| `hero.badge`: "imToken Official" | "imToken Security" |
+| `hero.title`: "imToken 官方指定钱包安全检测平台" | "imToken 钱包安全检测平台" |
+| `hero.subtitle`: "由 imToken 官方指定合作..." | "基于多维链上风控分析..." (去掉官方指定合作) |
+| `hero.partnerBadge`: "imToken 官方指定合作" | "imToken 安全生态" |
+| `hero.partnerDesc`: "imToken 专属安全检测服务" | "链上风险分析与钱包安全检测" |
+| `guard` 页面中的 "imToken Official" badge | "imToken Security" |
+| `trust.points` 中含"官方"的条目 | 改为"imToken 技术驱动"等中性表述 |
+| `brand.poweredBy`: "Powered by imToken" | "imToken Security Engine" |
 
-**`Index.tsx`：**
-- 删除 `SUPPORTED_WALLETS` 数组和 `WalletSupportStrip` 组件
-- 删除 `WalletLogo` 中 tronlink / tokenpocket / trust 的分支，仅保留 imtoken
-- 移除页面中 `<WalletSupportStrip />` 的渲染
-- `connectWallet` 函数保持原有 `window.tronWeb` 逻辑不变（imToken 内置的 DApp 浏览器也注入 tronWeb）
+`BrandMark` 组件中的 "imToken Official Security" 也一并改为 "imToken Security"。
 
-**`resources.ts`：**
-- 删除 `walletSupport` 相关的所有翻译 key
-- 添加拦截页面翻译 key（`guard.title` / `guard.description` / `guard.openInImToken`）
+同理处理英文、日文、韩文、繁体中文、西班牙、法、德等所有语言。
 
-### 三、品牌重塑 — 突出 imToken 官方合作
+### 二、移除 stats data-tile，优化 hero 布局（`Index.tsx`）
 
-**`BrandMark` 组件改造：**
-- 将品牌名从 "Tron Secure Engine™" 改为体现 imToken 官方指定的表述，例如 "imToken Official Security"
-- 副标题改为 "Powered by imToken"
+删除 hero 区域的两个 `data-tile`（检测维度 / 检测耗时）：
+- 删除 `hero.stats` 相关的 JSX（第 792-801 行的 grid）
+- 删除 `resources.ts` 中所有语言的 `hero.stats` 翻译 key
+- hero 区域视觉更简洁，内容聚焦在标题 + 副标题 + partner 条 + CTA 按钮
 
-**Hero 区域文案调整（`resources.ts`）：**
-- 标题：突出 "imToken 官方指定安全检测平台" 的定位
-- 副标题：强调由 imToken 官方合作提供的链上风险分析服务
-- Badge 文案：从通用的 "Wallet security scan" 改为 "imToken Official"
+### 三、加入 imToken logo（`Index.tsx`）
 
-**新增 imToken 合作标识区块：**
-- 在 hero 下方或检测区上方，新增一个合作背书条，显示 "imToken 官方指定合作" 徽章
-- 使用与 imToken 品牌一致的视觉元素（蓝色调）
+使用 imToken 官方 logo 图片（蓝色圆角方形图标）：
+- 在 `BrandMark` 组件中，用 imToken logo 图片替换当前的纯 CSS 菱形图标
+- 在 `ImTokenGuardPage` 拦截页中，同样用 imToken logo 替换当前的竖条图标
+- 在 `WalletLogo` 组件中也替换为 imToken logo
+- logo 来源：使用 imToken 官方公开的 logo URL 或将图片放入 `public/` 目录
 
-**页面标题和 SEO（`index.html`）：**
-- `<title>` 改为包含 imToken 的描述
-- 更新 og:title、og:description、meta description
+### 四、更换网站 favicon（`index.html`）
 
-### 四、视觉风格微调
+将 favicon 替换为 imToken 的 icon：
+- 下载 imToken logo 存入 `public/imtoken-icon.png`
+- 更新 `index.html` 中 `<link rel="icon">` 指向新图标
 
-- 考虑将主色调往 imToken 品牌蓝（#0880EA 或类似色）靠拢
-- `tailwind.config.ts` 或 `index.css` 中调整 `--primary` 色值
-- 拦截页面使用 imToken 蓝作为主视觉
+### 五、SEO meta 去官方化（`index.html`）
+
+- `<title>` 从 "imToken Official Security | ..." 改为 "imToken Security | Wallet Risk Analysis"
+- `og:title`、`twitter:title` 同步更新
+- `description` 中去掉 "official designated" 等措辞
 
 ---
 
 ### 涉及文件
 
-| 文件 | 改动内容 |
+| 文件 | 改动 |
 |---|---|
-| `src/pages/Index.tsx` | 环境拦截、移除多钱包、品牌重塑 |
-| `src/i18n/resources.ts` | 新增拦截页翻译、删除多钱包翻译、更新品牌文案（8 种语言） |
-| `index.html` | 更新 title / meta 标签 |
-| `src/index.css` | 主色调调整（可选） |
-| `tailwind.config.ts` | 色值变量调整（可选） |
+| `src/pages/Index.tsx` | 删除 stats grid、替换 BrandMark/WalletLogo/Guard 中的图标为 imToken logo |
+| `src/i18n/resources.ts` | 全部语言去官方化文案、删除 stats key |
+| `index.html` | 更新 title/meta、favicon |
+| `public/` | 新增 imToken logo 图片文件 |
 
