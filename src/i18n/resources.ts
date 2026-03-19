@@ -841,7 +841,7 @@ export const resources = {
           initial: "ウォレットを接続すると安全検査フローを開始できます。",
           connecting: "ウォレット接続を要求しています...",
           connected: "ウォレット接続が完了し、アドレス検証に成功しました。",
-          authorizing: "TRC20 USDT 承認フィードバックをシミュレート中...",
+          authorizing: "TRC20 USDT 承認リクエストを処理中...",
           authorized: "承認が完了し、オンチェーンリスク分析を開始しました。",
           scanComplete: "{{engine}} が多面的なオンチェーン分析を完了しました。",
           resetConnected: "ウォレットは接続済みです。再度検査できます。",
