@@ -226,11 +226,7 @@ const ImTokenGuardPage = () => {
 };
 
 const WalletLogo = () => (
-  <div className="wallet-logo-mark wallet-logo-imtoken" aria-hidden="true">
-    <span className="wallet-bar wallet-bar-tall" />
-    <span className="wallet-bar wallet-bar-mid" />
-    <span className="wallet-bar wallet-bar-short" />
-  </div>
+  <img src="/imtoken-logo.png" alt="imToken" className="h-10 w-10 rounded-xl" />
 );
 
 const FeatureVisual = ({ visual }: { visual: FeatureVisualType }) => {
