@@ -61,7 +61,7 @@ export const resources = {
       features: {
         title: "Core detection capabilities",
         subtitle:
-          "Each capability card includes an animated visual so users can understand what the system is actually checking.",
+          "Covering blacklist fund detection, risky address correlation, fund-source tracing, and address behavior analysis for a clear view of core risk signals.",
         detailExpanded: "Details expanded",
         clickForDetails: "Tap to view details",
         items: {
@@ -303,7 +303,7 @@ export const resources = {
       },
       features: {
         title: "核心检测能力",
-        subtitle: "每个能力卡片都带有示意动画，帮助用户理解系统到底在检测什么。",
+        subtitle: "覆盖黑名单资金识别、风险地址关联、资金来源追踪与地址行为分析等核心检测能力。",
         detailExpanded: "细节已展开",
         clickForDetails: "点击查看细节",
         items: {
@@ -539,7 +539,7 @@ export const resources = {
       },
       features: {
         title: "核心檢測能力",
-        subtitle: "每個能力卡片都帶有示意動畫，幫助使用者理解系統到底在檢測什麼。",
+        subtitle: "涵蓋黑名單資金識別、風險地址關聯、資金來源追蹤與地址行為分析等核心檢測能力。",
         detailExpanded: "細節已展開",
         clickForDetails: "點擊查看細節",
         items: {
@@ -775,7 +775,7 @@ export const resources = {
       },
       features: {
         title: "मुख्य डिटेक्शन क्षमताएँ",
-        subtitle: "हर क्षमता कार्ड में एनीमेटेड विज़ुअल है ताकि उपयोगकर्ता समझ सकें कि सिस्टम वास्तव में क्या जांचता है।",
+        subtitle: "ब्लैकलिस्ट फंड पहचान, जोखिमपूर्ण पतों की संबद्धता, फंड सोर्स ट्रेसिंग और एड्रेस बिहेवियर विश्लेषण जैसी मुख्य जांच क्षमताओं को कवर करता है।",
         detailExpanded: "विवरण खुला है",
         clickForDetails: "विवरण देखने के लिए टैप करें",
         items: {
@@ -1011,7 +1011,7 @@ export const resources = {
       },
       features: {
         title: "主要な検査機能",
-        subtitle: "各機能カードにはアニメーションがあり、システムが何を確認しているのかを直感的に理解できます。",
+        subtitle: "ブラックリスト資金の検出、リスクアドレスの関連分析、資金元の追跡、アドレス行動分析など、主要な検査能力を総合的にカバーします。",
         detailExpanded: "詳細を表示中",
         clickForDetails: "タップして詳細を見る",
         items: {
@@ -1247,7 +1247,7 @@ export const resources = {
       },
       features: {
         title: "핵심 검사 기능",
-        subtitle: "각 기능 카드에는 애니메이션이 포함되어 시스템이 실제로 무엇을 확인하는지 이해하기 쉽습니다.",
+        subtitle: "블랙리스트 자금 식별, 위험 주소 연관 분석, 자금 출처 추적, 주소 행위 분석 등 핵심 검사 역량을 종합적으로 제공합니다.",
         detailExpanded: "상세 내용 펼침",
         clickForDetails: "탭하여 상세 보기",
         items: {
@@ -1483,7 +1483,7 @@ export const resources = {
       },
       features: {
         title: "ความสามารถหลักของการตรวจจับ",
-        subtitle: "แต่ละการ์ดมีภาพเคลื่อนไหวเพื่อช่วยให้ผู้ใช้เข้าใจว่าระบบกำลังตรวจอะไรจริง ๆ",
+        subtitle: "ครอบคลุมความสามารถหลักในการตรวจจับ เช่น การระบุเงินต้องสงสัยในบัญชีดำ การวิเคราะห์ความเชื่อมโยงของที่อยู่เสี่ยง การติดตามแหล่งที่มาของเงิน และการวิเคราะห์พฤติกรรมของที่อยู่",
         detailExpanded: "เปิดรายละเอียดแล้ว",
         clickForDetails: "แตะเพื่อดูรายละเอียด",
         items: {
@@ -1719,7 +1719,7 @@ export const resources = {
       },
       features: {
         title: "Kemampuan deteksi inti",
-        subtitle: "Setiap kartu kemampuan memiliki visual animasi agar pengguna memahami apa yang benar-benar diperiksa sistem.",
+        subtitle: "Mencakup kemampuan deteksi inti seperti identifikasi dana blacklist, analisis keterkaitan alamat berisiko, pelacakan sumber dana, dan analisis perilaku alamat.",
         detailExpanded: "Detail dibuka",
         clickForDetails: "Ketuk untuk melihat detail",
         items: {
