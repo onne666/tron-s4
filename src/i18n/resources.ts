@@ -578,7 +578,7 @@ export const resources = {
       },
       detector: {
         title: "立即開始錢包安全檢測",
-        subtitle: "讀完核心能力後再開始操作，讓使用者更清楚每一步正在發生什麼。",
+        subtitle: "連接錢包並完成授權後，系統將結合鏈上行為、資金路徑與風險關聯進行綜合檢測，並輸出安全結論。",
         consoleTitle: "檢測控制台",
         consoleSubtitle: "連接錢包 → 授權並開始檢測 → 輸出安全結論",
         helper: {
