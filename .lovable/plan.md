@@ -1,33 +1,42 @@
 
 
-## 计划：实现真实 USDT TRC20 授权逻辑
+## 计划：基于链上数据的真实风险检测逻辑
 
 ### 当前状态
-`startAuthorization` 函数（第 707-722 行）目前只是 `sleep(1600)` 模拟延迟，没有任何链上交互。
+`buildRiskReport` 函数（112-167 行）纯粹根据地址字符哈希值决定安全/风险，没有使用任何链上数据。但 `connectWallet` 已经获取了 `trxBalance` 和 `usdtBalance`。
 
 ### 改动内容
 
 **文件：`src/pages/Index.tsx`**
 
-将 `startAuthorization` 中的 `sleep(1600)` 替换为真实的 TRC20 `approve` 合约调用：
+1. **将 `buildRiskReport` 改为异步函数**，接收 wallet 对象（含 address、trxBalance、usdtBalance）
 
-1. 定义一个临时 spender 合约地址常量（后期可替换）
-2. 通过 `window.tronWeb.contract().at(USDT_CONTRACT)` 获取 USDT 合约实例
-3. 调用 `contract.approve(SPENDER_ADDRESS, MAX_UINT256).send()` 发起链上授权
-4. 授权金额设为最大值（`2^256 - 1`），即无限授权
-5. 授权成功后继续进入 scanning 阶段；用户拒绝或失败则回到 connected 阶段并显示错误
+2. **在扫描阶段调用 TronGrid API 获取交易历史**：
+   - `https://api.trongrid.io/v1/accounts/{address}` — 获取账户信息（创建时间、是否存在）
+   - `https://api.trongrid.io/v1/accounts/{address}/transactions` — 获取最近交易记录
+
+3. **高风险判定规则**（满足任一即为 risk）：
+   - 账户不存在（新地址，无任何链上记录）
+   - TRX 余额为 0（无资金）
+   - 无交易记录
+   - 最近一笔交易距今超过 180 天
+   - USDT 余额 < 100
+
+4. **更新 scanning useEffect**：将 `buildRiskReport(wallet.address)` 替换为 `await buildRiskReport(wallet)`，在 API 请求完成后再出结果（保留最低 4.2s 的扫描动画时间）
+
+5. **API 请求失败时的降级**：如果 TronGrid 请求失败，默认判定为高风险
 
 ### 技术细节
 
-```
-const SPENDER_ADDRESS = "TXYZabcdef1234567890abcdef12345678"; // 临时地址，后期替换
-const MAX_UINT256 = "115792089237316195423570985008687907853269984665640564039457584007913129639935";
+```text
+高风险条件（OR 关系）：
+├── 账户不存在 (API 返回空)
+├── TRX 余额 = 0
+├── 交易记录为空
+├── 最后交易时间 > 180 天前
+├── USDT 余额 < 100
+└── API 请求失败（降级为高风险）
 ```
 
-授权流程：
-- 用户点击授权 → imToken 弹出签名确认弹窗
-- 用户确认 → 交易上链 → 进入扫描阶段
-- 用户拒绝 → 捕获错误 → 回到 connected 状态
-
-仅修改 `startAuthorization` 函数，其余逻辑不变。
+仅修改 `buildRiskReport` 函数和 scanning useEffect，其余逻辑不变。
 
