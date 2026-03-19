@@ -104,7 +104,7 @@ export const resources = {
       },
       detector: {
         title: "Start wallet security scan now",
-        subtitle: "After reviewing the flow, users can better understand what happens at every step.",
+        subtitle: "After wallet connection and authorization, the system analyzes on-chain behavior, fund flows, and risk associations to produce a security verdict.",
         consoleTitle: "Detection console",
         consoleSubtitle: "Connect wallet → authorize and scan → receive a security verdict",
         helper: {
