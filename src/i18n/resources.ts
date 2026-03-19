@@ -1758,7 +1758,7 @@ export const resources = {
       },
       detector: {
         title: "Mulai pemindaian keamanan dompet sekarang",
-        subtitle: "Setelah memahami alurnya, pengguna akan lebih mudah melihat apa yang terjadi di setiap tahap.",
+        subtitle: "Setelah dompet terhubung dan otorisasi selesai, sistem menganalisis perilaku on-chain, alur dana, dan keterkaitan risiko untuk menghasilkan kesimpulan keamanan.",
         consoleTitle: "Konsol deteksi",
         consoleSubtitle: "Hubungkan dompet → otorisasi dan pindai → terima putusan keamanan",
         helper: {
