@@ -539,7 +539,7 @@ export const resources = {
       },
       features: {
         title: "核心檢測能力",
-        subtitle: "每個能力卡片都帶有示意動畫，幫助使用者理解系統到底在檢測什麼。",
+        subtitle: "涵蓋黑名單資金識別、風險地址關聯、資金來源追蹤與地址行為分析等核心檢測能力。",
         detailExpanded: "細節已展開",
         clickForDetails: "點擊查看細節",
         items: {
