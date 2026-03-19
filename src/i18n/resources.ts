@@ -1286,7 +1286,7 @@ export const resources = {
       },
       detector: {
         title: "지금 지갑 보안 검사를 시작하세요",
-        subtitle: "흐름을 먼저 이해하면 각 단계에서 무엇이 일어나는지 더 명확하게 볼 수 있습니다.",
+        subtitle: "지갑 연결과 승인이 완료되면 시스템이 온체인 행동, 자금 흐름, 위험 연관성을 분석해 보안 판정을 제공합니다.",
         consoleTitle: "검사 콘솔",
         consoleSubtitle: "지갑 연결 → 승인 후 검사 시작 → 보안 결론 확인",
         helper: {
