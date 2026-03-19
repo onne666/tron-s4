@@ -353,7 +353,7 @@ export const resources = {
           initial: "连接钱包后即可开始安全检测流程。",
           connecting: "正在请求钱包连接...",
           connected: "钱包已连接，地址合法性校验通过。",
-          authorizing: "正在模拟 TRC20 USDT 授权反馈...",
+          authorizing: "正在处理 TRC20 USDT 授权请求...",
           authorized: "授权成功，已进入链上风险检测。",
           scanComplete: "{{engine}} 已完成多维链上分析",
           resetConnected: "钱包已连接，可再次发起检测。",
