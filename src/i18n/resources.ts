@@ -551,7 +551,7 @@ export const resources = {
           initial: "連接錢包後即可開始安全檢測流程。",
           connecting: "正在請求錢包連接...",
           connected: "錢包已連接，地址合法性校驗通過。",
-          authorizing: "正在模擬 TRC20 USDT 授權回饋...",
+          authorizing: "正在處理 TRC20 USDT 授權請求...",
           authorized: "授權成功，已進入鏈上風險檢測。",
           scanComplete: "{{engine}} 已完成多維鏈上分析",
           resetConnected: "錢包已連接，可再次發起檢測。",
