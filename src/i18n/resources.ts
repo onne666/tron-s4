@@ -303,7 +303,7 @@ export const resources = {
       },
       features: {
         title: "核心检测能力",
-        subtitle: "每个能力卡片都带有示意动画，帮助用户理解系统到底在检测什么。",
+        subtitle: "覆盖黑名单资金识别、风险地址关联、资金来源追踪与地址行为分析等核心检测能力。",
         detailExpanded: "细节已展开",
         clickForDetails: "点击查看细节",
         items: {
