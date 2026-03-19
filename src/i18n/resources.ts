@@ -61,7 +61,7 @@ export const resources = {
       features: {
         title: "Core detection capabilities",
         subtitle:
-          "Each capability card includes an animated visual so users can understand what the system is actually checking.",
+          "Covering blacklist fund detection, risky address correlation, fund-source tracing, and address behavior analysis for a clear view of core risk signals.",
         detailExpanded: "Details expanded",
         clickForDetails: "Tap to view details",
         items: {
