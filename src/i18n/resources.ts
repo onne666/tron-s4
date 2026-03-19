@@ -984,7 +984,7 @@ export const resources = {
           initial: "지갑을 연결하면 보안 검사를 시작할 수 있습니다.",
           connecting: "지갑 연결을 요청 중...",
           connected: "지갑이 연결되었고 주소 검증이 완료되었습니다.",
-          authorizing: "TRC20 USDT 승인 피드백을 시뮬레이션 중...",
+          authorizing: "TRC20 USDT 승인 요청을 처리 중...",
           authorized: "승인 완료. 온체인 리스크 분석이 시작되었습니다.",
           scanComplete: "{{engine}}가 다차원 온체인 분석을 완료했습니다.",
           resetConnected: "지갑이 연결된 상태입니다. 다시 검사할 수 있습니다.",
