@@ -1270,7 +1270,7 @@ export const resources = {
           initial: "Hubungkan dompet untuk memulai.",
           connecting: "Meminta koneksi dompet...",
           connected: "Dompet terhubung dan validasi alamat berhasil.",
-          authorizing: "Mensimulasikan umpan balik otorisasi...",
+          authorizing: "Memproses permintaan otorisasi TRC20 USDT...",
           authorized: "Otorisasi berhasil. Analisis risiko dimulai.",
           scanComplete: "{{engine}} telah menyelesaikan analisis.",
           resetConnected: "Dompet masih terhubung.",
