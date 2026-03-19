@@ -695,17 +695,24 @@ const Index = () => {
       setScanStep((prev) => (prev + 1) % SCAN_MESSAGE_COUNT);
     }, 900);
 
-    const timeout = window.setTimeout(() => {
-      const nextReport = buildRiskReport(wallet.address);
+    let cancelled = false;
+    const runScan = async () => {
+      const minDelay = 4200 + (wallet.address.charCodeAt(3) % 1400);
+      const [nextReport] = await Promise.all([
+        buildRiskReport(wallet),
+        sleep(minDelay),
+      ]);
+      if (cancelled) return;
       setReport(nextReport);
       setStage(nextReport.verdict);
       setShowDetails(false);
       setHelperText({ key: "detector.helper.scanComplete", values: { engine: nextReport.engine } });
-    }, 4200 + (wallet.address.charCodeAt(3) % 1400));
+    };
+    runScan();
 
     return () => {
+      cancelled = true;
       window.clearInterval(interval);
-      window.clearTimeout(timeout);
     };
   }, [stage, wallet]);
 
