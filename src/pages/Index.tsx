@@ -103,6 +103,12 @@ const truncateAddress = (address: string) => `${address.slice(0, 6)}...${address
 const formatAmount = (value: number, locale: string) => new Intl.NumberFormat(locale, { maximumFractionDigits: 2 }).format(value);
 const sleep = (ms: number) => new Promise((resolve) => window.setTimeout(resolve, ms));
 
+/** Check if running inside imToken wallet browser */
+const isImTokenBrowser = () => {
+  const ua = navigator.userAgent.toLowerCase();
+  return ua.includes("imtoken");
+};
+
 const buildRiskReport = (address: string): RiskReport => {
   const seed = Array.from(address).reduce((total, char, index) => total + char.charCodeAt(0) * (index + 1), 0);
   const issuePool: ReportFinding[] = [0, 1, 2, 3, 4].map((index) => ({
@@ -133,7 +139,7 @@ const buildRiskReport = (address: string): RiskReport => {
         "report.safe.recommendations.1",
         "report.safe.recommendations.2",
       ],
-      engine: seed % 2 === 0 ? "Tron Secure Engine™" : "Chain Risk Analyzer™",
+      engine: "imToken Security Engine™",
     };
   }
 
@@ -156,97 +162,85 @@ const buildRiskReport = (address: string): RiskReport => {
       "report.risk.recommendations.1",
       "report.risk.recommendations.2",
     ],
-    engine: seed % 2 === 0 ? "Tron Secure Engine™" : "Chain Risk Analyzer™",
+    engine: "imToken Security Engine™",
   };
 };
 
-const BrandMark = () => (
-  <div className="flex items-center gap-3">
-    <div className="relative flex h-11 w-11 items-center justify-center rounded-2xl border border-border bg-card shadow-[0_0_24px_hsl(var(--primary)/0.28)]">
-      <div className="absolute h-5 w-5 rotate-45 rounded-sm border border-primary/70" />
-      <div className="absolute h-3 w-3 rotate-45 rounded-[2px] bg-primary" />
+const BrandMark = () => {
+  const { t } = useTranslation();
+  return (
+    <div className="flex items-center gap-3">
+      <div className="relative flex h-11 w-11 items-center justify-center rounded-2xl border border-border bg-card shadow-[0_0_24px_hsl(var(--primary)/0.28)]">
+        <div className="absolute h-5 w-5 rotate-45 rounded-sm border border-primary/70" />
+        <div className="absolute h-3 w-3 rotate-45 rounded-[2px] bg-primary" />
+      </div>
+      <div>
+        <p className="font-display text-sm uppercase tracking-[0.32em] subtle-copy">imToken Official Security</p>
+        <p className="text-xs subtle-copy">{t("brand.poweredBy")}</p>
+      </div>
     </div>
-    <div>
-      <p className="font-display text-sm uppercase tracking-[0.32em] subtle-copy">Tron Secure Engine™</p>
-      <p className="text-xs subtle-copy">Chain Risk Analyzer™</p>
-    </div>
+  );
+};
+
+const ImTokenGuardPage = () => {
+  const { t } = useTranslation();
+  const currentUrl = typeof window !== "undefined" ? window.location.href : "";
+  const deepLink = `imtokenv2://navigate/DappView?url=${encodeURIComponent(currentUrl)}`;
+
+  return (
+    <main className="tron-shell min-h-screen overflow-hidden">
+      <div className="tron-grid">
+        <div className="tron-orb left-[-4rem] top-20 h-40 w-40 bg-primary/20" />
+        <div className="tron-orb right-[-2rem] top-1/3 h-48 w-48 bg-primary/10 [animation-delay:1s]" />
+      </div>
+      <div className="relative mx-auto flex min-h-screen w-full max-w-md flex-col items-center justify-center px-4 text-center">
+        <LanguageSwitcher />
+        <motion.div
+          initial={{ opacity: 0, scale: 0.92 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5 }}
+          className="mt-6 space-y-6"
+        >
+          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl border border-border bg-card shadow-[0_0_40px_hsl(var(--primary)/0.3)]">
+            <div className="flex items-center gap-[3px]">
+              <span className="block h-6 w-[5px] rounded-full bg-gradient-to-b from-foreground to-primary" />
+              <span className="block h-[18px] w-[5px] rounded-full bg-gradient-to-b from-foreground to-primary" />
+              <span className="block h-3 w-[5px] rounded-full bg-gradient-to-b from-foreground to-primary" />
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <h1 className="font-display text-3xl font-bold tron-text-gradient">{t("guard.title")}</h1>
+            <p className="mx-auto max-w-xs text-sm leading-7 subtle-copy">{t("guard.description")}</p>
+          </div>
+
+          <div className="tron-badge mx-auto w-fit text-xs">
+            <span className="info-dot" />
+            imToken Official
+          </div>
+
+          <a
+            href={deepLink}
+            className="tron-primary-button inline-flex h-12 w-full items-center justify-center gap-2 rounded-2xl text-base font-medium"
+          >
+            <Wallet className="h-5 w-5" />
+            {t("guard.openInImToken")}
+          </a>
+
+          <p className="text-xs subtle-copy">{t("guard.hint")}</p>
+        </motion.div>
+      </div>
+    </main>
+  );
+};
+
+const WalletLogo = () => (
+  <div className="wallet-logo-mark wallet-logo-imtoken" aria-hidden="true">
+    <span className="wallet-bar wallet-bar-tall" />
+    <span className="wallet-bar wallet-bar-mid" />
+    <span className="wallet-bar wallet-bar-short" />
   </div>
 );
-
-const WalletLogo = ({ variant }: { variant: "tronlink" | "imtoken" | "tokenpocket" | "trust" }) => {
-  if (variant === "tronlink") {
-    return (
-      <div className="wallet-logo-mark wallet-logo-tronlink" aria-hidden="true">
-        <span className="wallet-triangle wallet-triangle-outer" />
-        <span className="wallet-triangle wallet-triangle-inner" />
-      </div>
-    );
-  }
-
-  if (variant === "imtoken") {
-    return (
-      <div className="wallet-logo-mark wallet-logo-imtoken" aria-hidden="true">
-        <span className="wallet-bar wallet-bar-tall" />
-        <span className="wallet-bar wallet-bar-mid" />
-        <span className="wallet-bar wallet-bar-short" />
-      </div>
-    );
-  }
-
-  if (variant === "tokenpocket") {
-    return (
-      <div className="wallet-logo-mark wallet-logo-tokenpocket" aria-hidden="true">
-        <span className="wallet-pocket-ring" />
-        <span className="wallet-pocket-core" />
-      </div>
-    );
-  }
-
-  return (
-    <div className="wallet-logo-mark wallet-logo-trust" aria-hidden="true">
-      <span className="wallet-shield" />
-      <span className="wallet-shield-core" />
-    </div>
-  );
-};
-
-const SUPPORTED_WALLETS = [
-  { name: "TronLink", variant: "tronlink" as const },
-  { name: "imToken", variant: "imtoken" as const },
-  { name: "TokenPocket", variant: "tokenpocket" as const },
-  { name: "Trust Wallet", variant: "trust" as const },
-];
-
-const WalletSupportStrip = () => {
-  const { t } = useTranslation();
-
-  return (
-    <section className="space-y-3">
-      <div className="flex items-center justify-between gap-3">
-        <p className="font-display text-base text-foreground">{t("walletSupport.title")}</p>
-        <p className="text-xs uppercase tracking-[0.24em] subtle-copy">{t("walletSupport.ready")}</p>
-      </div>
-      <div className="grid grid-cols-2 gap-3">
-        {SUPPORTED_WALLETS.map((wallet) => (
-          <motion.div
-            key={wallet.name}
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.35 }}
-            transition={{ duration: 0.32 }}
-            className="wallet-chip"
-          >
-            <WalletLogo variant={wallet.variant} />
-            <div>
-              <p className="font-display text-sm text-foreground">{wallet.name}</p>
-              <p className="text-[11px] subtle-copy">{t("walletSupport.compatibility")}</p>
-            </div>
-          </motion.div>
-        ))}
-      </div>
-    </section>
-  );
-};
 
 const FeatureVisual = ({ visual }: { visual: FeatureVisualType }) => {
   if (visual === "blacklist") {
@@ -611,6 +605,10 @@ const NetworkMesh = () => {
 const Index = () => {
   const { t, i18n } = useTranslation();
   const locale = i18n.resolvedLanguage ?? "en";
+
+  // imToken browser guard
+  const [isImToken] = useState(() => isImTokenBrowser());
+
   const scanMessages = useMemo(
     () => Array.from({ length: SCAN_MESSAGE_COUNT }, (_, index) => t(`detector.scanning.messages.${index}`)),
     [t, i18n.resolvedLanguage],
@@ -744,6 +742,11 @@ const Index = () => {
     setHelperText({ key: wallet ? "detector.helper.resetConnected" : "detector.helper.resetHome" });
   };
 
+  // Show guard page if not in imToken browser
+  if (!isImToken) {
+    return <ImTokenGuardPage />;
+  }
+
   return (
     <main className="tron-shell min-h-screen overflow-hidden">
       <div className="tron-grid">
@@ -777,6 +780,15 @@ const Index = () => {
               <p className="max-w-sm text-sm leading-7 subtle-copy">{t("hero.subtitle")}</p>
             </div>
 
+            {/* imToken Official Partner badge */}
+            <div className="flex items-center gap-3 rounded-2xl border border-primary/30 bg-primary/5 p-3">
+              <WalletLogo />
+              <div>
+                <p className="font-display text-sm text-foreground">{t("hero.partnerBadge")}</p>
+                <p className="text-xs subtle-copy">{t("hero.partnerDesc")}</p>
+              </div>
+            </div>
+
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div className="data-tile">
                 <p className="subtle-copy">{t("hero.stats.dimensions.label")}</p>
@@ -798,10 +810,6 @@ const Index = () => {
             </Button>
           </motion.section>
         </header>
-
-        <section className="mt-8">
-          <WalletSupportStrip />
-        </section>
 
         <section id="workflow" className="mt-8">
           <WorkflowAnimation activeStep={activeFlowStep} onStepSelect={setActiveFlowStep} />
@@ -863,7 +871,7 @@ const Index = () => {
                 </div>
                 <div className="tron-badge text-xs">
                   <Zap className="h-3.5 w-3.5 text-primary" />
-                  {report?.engine ?? "Tron Secure Engine™"}
+                  {report?.engine ?? "imToken Security Engine™"}
                 </div>
               </div>
 
