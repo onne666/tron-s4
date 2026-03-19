@@ -170,12 +170,9 @@ const BrandMark = () => {
   const { t } = useTranslation();
   return (
     <div className="flex items-center gap-3">
-      <div className="relative flex h-11 w-11 items-center justify-center rounded-2xl border border-border bg-card shadow-[0_0_24px_hsl(var(--primary)/0.28)]">
-        <div className="absolute h-5 w-5 rotate-45 rounded-sm border border-primary/70" />
-        <div className="absolute h-3 w-3 rotate-45 rounded-[2px] bg-primary" />
-      </div>
+      <img src="/imtoken-logo.png" alt="imToken" className="h-11 w-11 rounded-2xl shadow-[0_0_24px_hsl(var(--primary)/0.28)]" />
       <div>
-        <p className="font-display text-sm uppercase tracking-[0.32em] subtle-copy">imToken Official Security</p>
+        <p className="font-display text-sm uppercase tracking-[0.32em] subtle-copy">imToken Security</p>
         <p className="text-xs subtle-copy">{t("brand.poweredBy")}</p>
       </div>
     </div>
