@@ -1,4 +1,4 @@
-import { Languages } from "lucide-react";
+import { Globe } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -13,10 +13,10 @@ const LanguageSwitcher = () => {
     <Select value={currentLanguage} onValueChange={(value) => void i18n.changeLanguage(value)}>
       <SelectTrigger
         aria-label={t("languageSwitcher.label")}
-        className="h-10 w-[8.5rem] rounded-full border-border bg-card/80 text-xs text-foreground shadow-[0_0_24px_hsl(var(--primary)/0.08)]"
+        className="h-10 w-[8.75rem] rounded-full border-border bg-card/80 px-3 text-xs text-foreground shadow-[0_0_24px_hsl(var(--primary)/0.08)]"
       >
-        <div className="flex items-center gap-2">
-          <Languages className="h-3.5 w-3.5 text-primary" />
+        <div className="flex items-center gap-2.5">
+          <Globe className="h-3.5 w-3.5 shrink-0 text-primary" />
           <SelectValue />
         </div>
       </SelectTrigger>
