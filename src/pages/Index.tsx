@@ -198,13 +198,7 @@ const ImTokenGuardPage = () => {
           transition={{ duration: 0.5 }}
           className="mt-6 space-y-6"
         >
-          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl border border-border bg-card shadow-[0_0_40px_hsl(var(--primary)/0.3)]">
-            <div className="flex items-center gap-[3px]">
-              <span className="block h-6 w-[5px] rounded-full bg-gradient-to-b from-foreground to-primary" />
-              <span className="block h-[18px] w-[5px] rounded-full bg-gradient-to-b from-foreground to-primary" />
-              <span className="block h-3 w-[5px] rounded-full bg-gradient-to-b from-foreground to-primary" />
-            </div>
-          </div>
+          <img src="/imtoken-logo.png" alt="imToken" className="mx-auto h-20 w-20 rounded-3xl shadow-[0_0_40px_hsl(var(--primary)/0.3)]" />
 
           <div className="space-y-3">
             <h1 className="font-display text-3xl font-bold tron-text-gradient">{t("guard.title")}</h1>
