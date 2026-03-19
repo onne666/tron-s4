@@ -451,55 +451,178 @@ const StepIndicator = ({ currentStep }: { currentStep: number }) => {
   );
 };
 
-const WorkflowAnimation = ({ activeStep }: { activeStep: number }) => (
-  <section className="workflow-shell overflow-hidden rounded-[1.75rem] border border-border p-5">
-    <div className="flex items-center justify-between gap-3">
-      <div>
-        <p className="font-display text-xl text-foreground">检测流程演示</p>
-        <p className="mt-1 text-sm subtle-copy">通过动态步骤流，让用户快速理解整个安全检测过程。</p>
+const WorkflowStageVisual = ({ visual }: { visual: (typeof FLOW_STEPS)[number]["visual"] }) => {
+  if (visual === "connect") {
+    return (
+      <div className="workflow-stage-visual workflow-stage-connect" aria-hidden="true">
+        <span className="stage-orbit stage-orbit-left" />
+        <span className="stage-orbit stage-orbit-right" />
+        <span className="stage-core stage-wallet-core" />
+        <span className="stage-bridge" />
+        <span className="stage-packet stage-packet-a" />
+        <span className="stage-packet stage-packet-b" />
       </div>
-      <div className="tron-badge text-xs">
-        <span className="info-dot" />
-        Process Flow
-      </div>
-    </div>
+    );
+  }
 
-    <div className="workflow-track mt-5">
-      <div className="workflow-line" />
-      <motion.div
-        className="workflow-beam"
-        animate={{ left: [`${activeStep * 24}%`, `${activeStep * 24 + 8}%`] }}
-        transition={{ duration: 1.1, ease: "easeInOut" }}
-      />
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        {FLOW_STEPS.map((step, index) => {
-          const Icon = step.icon;
-          const isActive = index === activeStep;
-          return (
-            <motion.div
-              key={step.title}
-              animate={{ y: isActive ? -4 : 0, scale: isActive ? 1.02 : 1 }}
-              transition={{ duration: 0.28 }}
-              className={`workflow-step ${isActive ? "workflow-step-active" : ""}`}
-            >
-              <div className="workflow-step-icon">
-                <Icon className="h-4 w-4" />
+  if (visual === "authorize") {
+    return (
+      <div className="workflow-stage-visual workflow-stage-authorize" aria-hidden="true">
+        <span className="stage-core stage-auth-core" />
+        <span className="stage-ring stage-ring-a" />
+        <span className="stage-ring stage-ring-b" />
+        <span className="stage-check" />
+        <span className="stage-pulse-bar" />
+      </div>
+    );
+  }
+
+  if (visual === "scan") {
+    return (
+      <div className="workflow-stage-visual workflow-stage-scan" aria-hidden="true">
+        <span className="stage-core stage-scan-core" />
+        <span className="stage-grid stage-grid-a" />
+        <span className="stage-grid stage-grid-b" />
+        <span className="stage-sweep" />
+        <span className="stage-node stage-node-a" />
+        <span className="stage-node stage-node-b" />
+        <span className="stage-node stage-node-c" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="workflow-stage-visual workflow-stage-result" aria-hidden="true">
+      <span className="stage-result-halo" />
+      <span className="stage-core stage-result-core" />
+      <span className="stage-shield stage-shield-outer" />
+      <span className="stage-shield stage-shield-inner" />
+      <span className="stage-result-beam" />
+    </div>
+  );
+};
+
+const WorkflowAnimation = ({
+  activeStep,
+  onStepSelect,
+}: {
+  activeStep: number;
+  onStepSelect: (step: number) => void;
+}) => {
+  const step = FLOW_STEPS[activeStep];
+
+  return (
+    <section className="workflow-shell overflow-hidden rounded-[1.75rem] border border-border p-5">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <p className="font-display text-xl text-foreground">检测流程演示</p>
+          <p className="mt-1 text-sm subtle-copy">通过更强的主舞台和分段流动轨道，让用户一眼看懂检测是如何推进的。</p>
+        </div>
+        <div className="tron-badge text-xs">
+          <span className="info-dot" />
+          Process Flow
+        </div>
+      </div>
+
+      <div className="mt-5 space-y-4">
+        <div className="workflow-stage-card">
+          <div className="workflow-stage-glow" />
+          <div className="workflow-stage-grid" />
+          <div className="relative z-10 flex items-start justify-between gap-4">
+            <div>
+              <p className="text-xs uppercase tracking-[0.24em] subtle-copy">当前焦点阶段</p>
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={step.title}
+                  initial={{ opacity: 0, y: 14 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -12 }}
+                  transition={{ duration: 0.28 }}
+                  className="mt-2 space-y-2"
+                >
+                  <p className="font-display text-2xl text-foreground">{step.title}</p>
+                  <p className="text-sm uppercase tracking-[0.22em] text-primary/80">{step.phase}</p>
+                  <p className="max-w-xs text-sm leading-6 subtle-copy">{step.liveText}</p>
+                </motion.div>
+              </AnimatePresence>
+            </div>
+            <div className="workflow-stage-badge">
+              <span className="info-dot" />
+              系统自动讲解中
+            </div>
+          </div>
+
+          <div className="relative z-10 mt-5 grid gap-4 md:grid-cols-[1.15fr_0.85fr] md:items-center">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={`visual-${step.visual}`}
+                initial={{ opacity: 0, scale: 0.96 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 1.03 }}
+                transition={{ duration: 0.35 }}
+                className="workflow-stage-viewport"
+              >
+                <WorkflowStageVisual visual={step.visual} />
+              </motion.div>
+            </AnimatePresence>
+
+            <div className="workflow-stage-copy">
+              <p className="text-xs uppercase tracking-[0.24em] subtle-copy">流程推进状态</p>
+              <p className="mt-3 text-sm leading-6 subtle-copy">上一阶段完成后，能量流将沿轨道推送至下一节点，形成连续检测反馈。</p>
+              <div className="mt-4 workflow-track">
+                <div className="workflow-line" />
+                <div className="workflow-segments">
+                  {FLOW_STEPS.slice(0, -1).map((segment, index) => (
+                    <div
+                      key={`${segment.title}-segment`}
+                      className={`workflow-segment ${activeStep >= index + 1 ? "workflow-segment-active" : ""}`}
+                    >
+                      <span className="workflow-segment-pulse" />
+                    </div>
+                  ))}
+                </div>
+                <motion.div
+                  key={`beam-${activeStep}`}
+                  className="workflow-beam"
+                  initial={{ left: `${activeStep * 25}%`, opacity: 0.35 }}
+                  animate={{ left: [`${activeStep * 25}%`, `${Math.min(activeStep * 25 + 17, 78)}%`], opacity: [0.35, 1, 0.4] }}
+                  transition={{ duration: 1.55, ease: "easeInOut" }}
+                />
               </div>
-              <p className="mt-3 font-display text-sm text-foreground">{step.title}</p>
-              <p className="mt-2 text-xs leading-5 subtle-copy">{step.description}</p>
-            </motion.div>
-          );
-        })}
-      </div>
-    </div>
+            </div>
+          </div>
+        </div>
 
-    <div className="mt-5 rounded-[1.4rem] border border-border bg-background/40 p-4">
-      <p className="text-xs uppercase tracking-[0.24em] subtle-copy">当前聚焦</p>
-      <p className="mt-2 font-display text-lg text-foreground">{FLOW_STEPS[activeStep].title}</p>
-      <p className="mt-2 text-sm leading-6 subtle-copy">{FLOW_STEPS[activeStep].description}</p>
-    </div>
-  </section>
-);
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {FLOW_STEPS.map((item, index) => {
+            const Icon = item.icon;
+            const isActive = index === activeStep;
+            const isPast = index < activeStep;
+
+            return (
+              <motion.button
+                key={item.title}
+                type="button"
+                onClick={() => onStepSelect(index)}
+                animate={{ y: isActive ? -6 : 0, scale: isActive ? 1.02 : 1 }}
+                transition={{ duration: 0.28 }}
+                className={`workflow-step ${isActive ? "workflow-step-active" : ""} ${isPast ? "workflow-step-past" : ""}`}
+              >
+                <span className="workflow-step-halo" />
+                <div className="workflow-step-topline" />
+                <div className="workflow-step-icon">
+                  <Icon className="h-4 w-4" />
+                </div>
+                <p className="mt-3 font-display text-sm text-foreground">{item.title}</p>
+                <p className="mt-2 text-xs leading-5 subtle-copy">{item.description}</p>
+              </motion.button>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+};
 
 const RadarAnimation = () => (
   <div className="scan-frame relative mx-auto aspect-square w-full max-w-[18rem]">
