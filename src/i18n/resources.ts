@@ -1011,7 +1011,7 @@ export const resources = {
       },
       features: {
         title: "主要な検査機能",
-        subtitle: "各機能カードにはアニメーションがあり、システムが何を確認しているのかを直感的に理解できます。",
+        subtitle: "ブラックリスト資金の検出、リスクアドレスの関連分析、資金元の追跡、アドレス行動分析など、主要な検査能力を総合的にカバーします。",
         detailExpanded: "詳細を表示中",
         clickForDetails: "タップして詳細を見る",
         items: {
