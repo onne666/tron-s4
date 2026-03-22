@@ -1,0 +1,8 @@
+# 纯静态 SPA：部署 dist，无需 @cloudflare/vite-plugin（避免与 Vite 5 的 peer 冲突）
+# 文档：https://developers.cloudflare.com/workers/static-assets/routing/single-page-application/
+name = "tron-s4"
+compatibility_date = "2025-03-22"
+
+[assets]
+directory = "./dist"
+not_found_handling = "single-page-application"
