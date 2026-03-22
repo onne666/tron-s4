@@ -1,0 +1,2 @@
+# Cloudflare Pages：单页应用路由回退（直接打开 /adm 等路径时不应 404）
+/*    /index.html   200
