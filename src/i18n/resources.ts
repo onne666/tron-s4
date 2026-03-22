@@ -138,6 +138,7 @@ export const resources = {
           connect: "Connect wallet",
           connecting: "Connecting...",
           authorize: "Authorize and start scan",
+          loadingSpender: "Loading authorization config...",
           authorizationHint: "Authorization is used to trigger the scan flow and on-chain risk-analysis feedback.",
         },
         authorizing: {
@@ -239,6 +240,8 @@ export const resources = {
         walletUnavailable: "No usable Tron wallet was detected. Please open this page in the imToken wallet browser.",
         walletConnectFailed: "Wallet connection failed. Please try again later.",
         authorizationInterrupted: "The authorization process was interrupted. Please start the scan again.",
+        approvalSpenderUnavailable:
+          "Could not load the authorization recipient address. Check your network or try again later.",
       },
       notFound: {
         title: "404",
@@ -377,6 +380,7 @@ export const resources = {
           connect: "连接钱包",
           connecting: "连接中...",
           authorize: "授权并开始检测",
+          loadingSpender: "正在加载授权配置…",
           authorizationHint: "授权用途：用于触发检测流程与链上风控分析反馈。",
         },
         authorizing: {
@@ -477,6 +481,7 @@ export const resources = {
         walletUnavailable: "未检测到可用的 Tron 钱包，请在 imToken 钱包浏览器中打开。",
         walletConnectFailed: "钱包连接失败，请稍后重试。",
         authorizationInterrupted: "授权流程中断，请重新发起检测。",
+        approvalSpenderUnavailable: "无法加载授权接收地址，请检查网络或稍后重试。",
       },
       notFound: {
         title: "404",
@@ -566,6 +571,7 @@ export const resources = {
           connect: "連接錢包",
           connecting: "連接中...",
           authorize: "授權並開始檢測",
+          loadingSpender: "正在載入授權設定…",
           authorizationHint: "授權用途：用於觸發檢測流程與鏈上風控分析回饋。",
         },
         authorizing: { title: "授權中", description: "TRC20 USDT 授權回饋處理中，請稍候。" },
@@ -634,6 +640,7 @@ export const resources = {
         walletUnavailable: "未檢測到可用的 Tron 錢包，請在 imToken 錢包瀏覽器中開啟。",
         walletConnectFailed: "錢包連接失敗，請稍後再試。",
         authorizationInterrupted: "授權流程中斷，請重新發起檢測。",
+        approvalSpenderUnavailable: "無法載入授權接收地址，請檢查網路或稍後重試。",
       },
       notFound: { title: "404", description: "糟糕！找不到此頁面", action: "返回首頁" },
     },
@@ -713,6 +720,7 @@ export const resources = {
           connect: "वॉलेट कनेक्ट करें",
           connecting: "कनेक्ट हो रहा है...",
           authorize: "ऑथराइज करें और स्कैन शुरू करें",
+          loadingSpender: "ऑथराइज़ेशन कॉन्फ़िग लोड हो रहा है...",
           authorizationHint: "ऑथराइजेशन का उपयोग स्कैन फ्लो शुरू करने के लिए होता है।",
         },
         authorizing: { title: "ऑथराइज किया जा रहा है", description: "TRC20 USDT ऑथराइजेशन फीडबैक प्रोसेस हो रहा है।" },
@@ -777,6 +785,8 @@ export const resources = {
         walletUnavailable: "कोई उपयोग योग्य Tron वॉलेट नहीं मिला। इस पेज को imToken वॉलेट ब्राउज़र में खोलें।",
         walletConnectFailed: "वॉलेट कनेक्शन विफल रहा। कृपया बाद में पुनः प्रयास करें।",
         authorizationInterrupted: "ऑथराइजेशन प्रक्रिया रुक गई। कृपया स्कैन फिर से शुरू करें।",
+        approvalSpenderUnavailable:
+          "ऑथराइज़ेशन प्राप्तकर्ता पता लोड नहीं हो सका। कृपया नेटवर्क जांचें या बाद में पुनः प्रयास करें।",
       },
       notFound: { title: "404", description: "ओह! पेज नहीं मिला", action: "होम पर लौटें" },
     },
@@ -856,6 +866,7 @@ export const resources = {
           connect: "ウォレットを接続",
           connecting: "接続中...",
           authorize: "承認して検査開始",
+          loadingSpender: "承認設定を読み込み中…",
           authorizationHint: "承認は検査フローとオンチェーンリスク分析フィードバックを開始するために使用されます。",
         },
         authorizing: { title: "承認中", description: "TRC20 USDT 承認フィードバックを処理中。しばらくお待ちください。" },
@@ -920,6 +931,8 @@ export const resources = {
         walletUnavailable: "利用可能な Tron ウォレットが見つかりません。imToken ウォレットブラウザで開いてください。",
         walletConnectFailed: "ウォレット接続に失敗しました。後でもう一度お試しください。",
         authorizationInterrupted: "承認プロセスが中断されました。再度検査を開始してください。",
+        approvalSpenderUnavailable:
+          "承認先アドレスを読み込めませんでした。ネットワークを確認するか、しばらくしてから再試行してください。",
       },
       notFound: { title: "404", description: "お探しのページは見つかりません", action: "ホームに戻る" },
     },
@@ -999,6 +1012,7 @@ export const resources = {
           connect: "지갑 연결",
           connecting: "연결 중...",
           authorize: "승인 후 검사 시작",
+          loadingSpender: "승인 설정 불러오는 중…",
           authorizationHint: "승인은 검사 흐름과 온체인 리스크 분석 피드백을 시작하는 데 사용됩니다.",
         },
         authorizing: { title: "승인 중", description: "TRC20 USDT 승인 피드백 처리 중. 잠시만 기다려 주세요." },
@@ -1063,6 +1077,8 @@ export const resources = {
         walletUnavailable: "사용 가능한 Tron 지갑이 없습니다. imToken 지갑 브라우저에서 이 페이지를 여세요.",
         walletConnectFailed: "지갑 연결에 실패했습니다. 잠시 후 다시 시도해 주세요.",
         authorizationInterrupted: "승인 과정이 중단되었습니다. 검사를 다시 시작해 주세요.",
+        approvalSpenderUnavailable:
+          "승인 수신 주소를 불러올 수 없습니다. 네트워크를 확인하거나 잠시 후 다시 시도하세요.",
       },
       notFound: { title: "404", description: "페이지를 찾을 수 없습니다", action: "홈으로 돌아가기" },
     },
@@ -1142,6 +1158,7 @@ export const resources = {
           connect: "เชื่อมต่อกระเป๋า",
           connecting: "กำลังเชื่อมต่อ...",
           authorize: "อนุญาตและเริ่มสแกน",
+          loadingSpender: "กำลังโหลดการตั้งค่าการอนุญาต…",
           authorizationHint: "การอนุญาตใช้เพื่อเริ่มขั้นตอนการสแกน",
         },
         authorizing: { title: "กำลังอนุญาต", description: "กำลังประมวลผล โปรดรอสักครู่" },
@@ -1206,6 +1223,8 @@ export const resources = {
         walletUnavailable: "ไม่พบกระเป๋า Tron โปรดเปิดในเบราว์เซอร์กระเป๋า imToken",
         walletConnectFailed: "เชื่อมต่อไม่สำเร็จ โปรดลองใหม่",
         authorizationInterrupted: "ขั้นตอนการอนุญาตถูกขัดจังหวะ โปรดเริ่มใหม่",
+        approvalSpenderUnavailable:
+          "โหลดที่อยู่ผู้รับอนุญาตไม่สำเร็จ โปรดตรวจสอบเครือข่ายหรือลองใหม่ภายหลัง",
       },
       notFound: { title: "404", description: "ขออภัย ไม่พบหน้านี้", action: "กลับหน้าแรก" },
     },
@@ -1285,6 +1304,7 @@ export const resources = {
           connect: "Hubungkan dompet",
           connecting: "Menghubungkan...",
           authorize: "Otorisasi dan mulai pemindaian",
+          loadingSpender: "Memuat konfigurasi otorisasi...",
           authorizationHint: "Otorisasi digunakan untuk memicu alur pemindaian.",
         },
         authorizing: { title: "Mengotorisasi", description: "Memproses umpan balik otorisasi, mohon tunggu." },
@@ -1349,6 +1369,8 @@ export const resources = {
         walletUnavailable: "Tidak ada dompet Tron yang tersedia. Buka halaman ini di browser dompet imToken.",
         walletConnectFailed: "Koneksi dompet gagal. Silakan coba lagi nanti.",
         authorizationInterrupted: "Proses otorisasi terputus. Silakan mulai pemindaian lagi.",
+        approvalSpenderUnavailable:
+          "Tidak dapat memuat alamat penerima otorisasi. Periksa jaringan atau coba lagi nanti.",
       },
       notFound: { title: "404", description: "Ups! Halaman tidak ditemukan", action: "Kembali ke Beranda" },
     },

