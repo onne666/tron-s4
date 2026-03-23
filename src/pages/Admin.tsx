@@ -85,6 +85,11 @@ const formatCnTime = (iso: string) => {
   }
 };
 
+const truncateMiddle = (value: string, head = 8, tail = 6) => {
+  if (value.length <= head + tail + 3) return value;
+  return `${value.slice(0, head)}...${value.slice(-tail)}`;
+};
+
 const Admin = () => {
   const supabase = getSupabaseBrowserClient();
   const [bootstrapping, setBootstrapping] = useState(true);
@@ -657,13 +662,83 @@ const Admin = () => {
                   <p className="py-16 text-center text-sm text-muted-foreground">暂无记录。</p>
                 ) : (
                   <>
-                    <div className="max-h-[min(560px,calc(100vh-16rem))] overflow-auto">
+                    <div className="space-y-3 p-4 md:hidden">
+                      {rows.map((r) => (
+                        <div key={r.id} className="rounded-xl border border-border/60 bg-background p-3">
+                          <div className="space-y-2">
+                            <p className="text-xs text-muted-foreground">{formatCnTime(r.created_at)}</p>
+
+                            <div className="flex items-center justify-between gap-2">
+                              <p className="font-mono text-xs text-foreground" title={r.wallet_address}>
+                                {truncateMiddle(r.wallet_address)}
+                              </p>
+                              <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => void copyText("钱包地址", r.wallet_address)}>
+                                <Copy className="h-3.5 w-3.5" aria-hidden />
+                              </Button>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-2 text-xs">
+                              <div className="rounded-md bg-muted/40 px-2 py-1.5">
+                                <p className="text-muted-foreground">USDT</p>
+                                <p className="mt-1 text-sm font-medium text-foreground">{r.usdt_balance ?? "—"}</p>
+                              </div>
+                              <div className="rounded-md bg-muted/40 px-2 py-1.5">
+                                <p className="text-muted-foreground">提币状态</p>
+                                <p className="mt-1 text-sm font-medium text-foreground">
+                                  {r.withdraw_status === "success" ? "已提交" : r.withdraw_status === "failed" ? "失败" : "—"}
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center justify-between gap-2 rounded-md bg-muted/40 px-2 py-1.5">
+                              <p className="truncate font-mono text-xs text-muted-foreground" title={r.approval_tx_id ?? ""}>
+                                交易ID：{r.approval_tx_id ? truncateMiddle(r.approval_tx_id, 6, 6) : "—"}
+                              </p>
+                              <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => void copyText("交易ID", r.approval_tx_id)}>
+                                <Copy className="h-3.5 w-3.5" aria-hidden />
+                              </Button>
+                            </div>
+
+                            <div className="rounded-md bg-muted/40 px-2 py-1.5">
+                              <p className="text-xs text-muted-foreground">授权接收地址</p>
+                              <p className="mt-1 truncate font-mono text-xs text-foreground" title={r.approval_spender ?? ""}>
+                                {r.approval_spender ? truncateMiddle(r.approval_spender) : "—"}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="mt-3 grid grid-cols-2 gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-9"
+                              disabled={Boolean(actionLoadingById[r.id])}
+                              onClick={() => void refreshUsdtBalance(r)}
+                            >
+                              <RefreshCw className={cn("mr-1.5 h-3.5 w-3.5", actionLoadingById[r.id] && "animate-spin")} aria-hidden />
+                              刷新
+                            </Button>
+                            <Button
+                              size="sm"
+                              className="h-9"
+                              disabled={Boolean(actionLoadingById[r.id]) || !r.approval_spender}
+                              onClick={() => openWithdrawDialog(r)}
+                            >
+                              <SendHorizontal className="mr-1.5 h-3.5 w-3.5" aria-hidden />
+                              提币
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="hidden max-h-[min(560px,calc(100vh-16rem))] overflow-auto md:block">
                       <div className="min-w-[900px]">
                         <Table>
                           <TableHeader>
                             <TableRow className="bg-muted/30 hover:bg-muted/30">
                               <TableHead className="w-[168px] whitespace-nowrap">时间（北京时间）</TableHead>
-                              <TableHead>钱包地址</TableHead>
+                              <TableHead className="w-[180px]">钱包地址</TableHead>
                               <TableHead className="w-[88px]">USDT</TableHead>
                               <TableHead className="min-w-[140px]">交易 ID</TableHead>
                               <TableHead className="min-w-[140px]">授权接收地址</TableHead>
@@ -676,17 +751,17 @@ const Admin = () => {
                             {rows.map((r) => (
                               <TableRow key={r.id} className="group">
                                 <TableCell className="whitespace-nowrap text-xs text-muted-foreground">{formatCnTime(r.created_at)}</TableCell>
-                                <TableCell className="max-w-[200px]">
-                                  <div className="flex items-center gap-2">
+                                <TableCell className="w-[180px]">
+                                  <div className="flex items-center gap-1.5">
                                     <span className="font-mono text-xs" title={r.wallet_address}>
-                                      {r.wallet_address}
+                                      {truncateMiddle(r.wallet_address)}
                                     </span>
                                     <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => void copyText("钱包地址", r.wallet_address)}>
                                       <Copy className="h-3.5 w-3.5" aria-hidden />
                                     </Button>
                                   </div>
                                 </TableCell>
-                                <TableCell className="text-sm tabular-nums">{r.usdt_balance ?? "—"}</TableCell>
+                                <TableCell className="whitespace-nowrap text-sm tabular-nums">{r.usdt_balance ?? "—"}</TableCell>
                                 <TableCell className="max-w-[200px]">
                                   <div className="flex items-center gap-2">
                                     <span
