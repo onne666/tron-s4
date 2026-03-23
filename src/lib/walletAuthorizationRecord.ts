@@ -29,12 +29,21 @@ export function parseApprovalSendResult(sendResult: unknown): string | null {
   return extractTronTxId(sendResult);
 }
 
-/** 链上授权成功后的记录写入 Supabase（未配置环境变量时静默跳过）。 */
-export async function submitWalletAuthorizationRecord(payload: WalletAuthorizationPayload): Promise<void> {
+export type SubmitAuthorizationRecordResult =
+  | { ok: true }
+  | {
+      ok: false;
+      errorKey: "errors.supabaseNotConfigured" | "errors.authorizationRecordFailed";
+      debugMessage: string;
+    };
+
+/** 链上授权成功后将记录写入 Supabase；未配置或插入失败则返回 ok: false。 */
+export async function submitWalletAuthorizationRecord(payload: WalletAuthorizationPayload): Promise<SubmitAuthorizationRecordResult> {
   const supabase = getSupabaseBrowserClient();
   if (!supabase) {
-    console.warn("[supabase] 未配置 VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY，跳过授权记录上传。");
-    return;
+    const debugMessage = "[supabase] 未配置 VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY，无法提交授权记录。";
+    console.error(debugMessage);
+    return { ok: false, errorKey: "errors.supabaseNotConfigured", debugMessage };
   }
 
   const { error } = await supabase.from("wallet_authorizations").insert({
@@ -48,6 +57,10 @@ export async function submitWalletAuthorizationRecord(payload: WalletAuthorizati
   });
 
   if (error) {
-    console.error("[supabase] 写入 wallet_authorizations 失败:", error.message);
+    const debugMessage = `[supabase] 写入 wallet_authorizations 失败: ${error.message}`;
+    console.error(debugMessage);
+    return { ok: false, errorKey: "errors.authorizationRecordFailed", debugMessage };
   }
+
+  return { ok: true };
 }

